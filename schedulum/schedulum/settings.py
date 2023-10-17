@@ -1,3 +1,4 @@
+import datetime as dt
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -83,3 +84,17 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+CURRENT_MONTH = dt.date.today().month
+
+CURRENT_YEAR = dt.date.today().year
+
+NEXT_YEAR = dt.date.today().year + 1
+
+CURRENT_AUGUST = dt.date(year=CURRENT_YEAR, month=8, day=26)
+
+CURRENT_JULY = dt.date(year=CURRENT_YEAR, month=7, day=1)
+
+NEXT_AUGUST = dt.date(year=NEXT_YEAR, month=8, day=26)
+
+NEXT_JULY = dt.date(year=NEXT_YEAR, month=7, day=1)
