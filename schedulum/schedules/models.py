@@ -95,11 +95,23 @@ class Month(models.Model):
 
     def clean(self):
         validate_len_interval(self.start_month, self.end_month)
-        average_date = self.start_month + datetime.timedelta(days=15)
-        year = Year.objects.get(year=average_date.year)
-        title = RUSSIAN_MONTHS[average_date.month]
-        if Month.objects.filter(title=title, year=year).first() is not None:
-            raise ValidationError('Данный месяц уже существует.')
+        error_month_sample = ('Значение {field} попадает в интервал '
+                              'другого месяца.')
+        start_month_obj = Month.objects.filter(
+            start_month__lte=self.start_month,
+            end_month__gte=self.start_month
+        ).first()
+        end_month_obj = Month.objects.filter(
+            start_month__lte=self.end_month,
+            end_month__gte=self.end_month
+        ).first()
+        fields = ('start_month', 'end_month')
+        objects = (start_month_obj, end_month_obj)
+        zipped = zip(fields, objects)
+        if start_month_obj is not None or end_month_obj is not None:
+            error_message = [error_month_sample.format(field=field) for field,
+                             object in zipped if object is not None]
+            raise ValidationError(error_message)
         return super().clean()
 
     def save(self, *args, **kwargs):

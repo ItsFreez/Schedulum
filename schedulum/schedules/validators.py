@@ -30,11 +30,9 @@ def right_year(date):
 
 
 def validate_len_interval(start, end):
-    sum_start = (start.month * 30) + start.day + start.year
-    sum_end = (end.month * 30) + end.day + end.year
-    difference = sum_end - sum_start
-    if difference > 38:
+    difference = end - start
+    if difference.days > 35:
         raise ValidationError('Указан слишком длинный промежуток.')
-    elif difference < 28:
+    elif difference.days < 27:
         raise ValidationError('Указан слишком короткий промежуток.')
     return None
