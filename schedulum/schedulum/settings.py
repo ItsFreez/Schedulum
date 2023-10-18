@@ -91,10 +91,18 @@ CURRENT_YEAR = dt.date.today().year
 
 NEXT_YEAR = dt.date.today().year + 1
 
-CURRENT_AUGUST = dt.date(year=CURRENT_YEAR, month=8, day=26)
+CURRENT_AUGUST = dt.date(year=CURRENT_YEAR, month=8, day=27)
+
+CURRENT_END_AUGUST = dt.date(year=CURRENT_YEAR, month=8, day=31)
 
 CURRENT_JULY = dt.date(year=CURRENT_YEAR, month=7, day=1)
 
-NEXT_AUGUST = dt.date(year=NEXT_YEAR, month=8, day=26)
+CURRENT_START_JULY = dt.date(year=CURRENT_YEAR, month=7, day=6)
+
+NEXT_AUGUST = dt.date(year=NEXT_YEAR, month=8, day=27)
+
+NEXT_END_AUGUST = dt.date(year=NEXT_YEAR, month=8, day=31)
 
 NEXT_JULY = dt.date(year=NEXT_YEAR, month=7, day=1)
+
+NEXT_START_JULY = dt.date(year=NEXT_YEAR, month=7, day=6)

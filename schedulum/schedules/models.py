@@ -1,12 +1,13 @@
 import datetime
 
-from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.conf import settings
 from django.db import models
 
-from schedules.validators import (right_end_month, right_start_month,
-                                  right_year, validate_len_interval)
+from schedules.validators import (
+    right_end, right_start, right_year, validate_len_interval,
+    validate_exist_interval
+)
 
 RUSSIAN_MONTHS = {
     1: 'Январь',
@@ -68,13 +69,13 @@ class Month(models.Model):
         related_name='months',
         help_text='Это поле автоматически заполнится, оставьте пустым.'
     )
-    start_month = models.DateField(
-        validators=[right_start_month, right_year],
+    start = models.DateField(
+        validators=[right_start, right_year],
         verbose_name='Начало учебного месяца',
         help_text='Выберите начало учебного месяца (понедельник).'
     )
-    end_month = models.DateField(
-        validators=[right_end_month, right_year],
+    end = models.DateField(
+        validators=[right_end, right_year],
         verbose_name='Конец учебного месяца',
         help_text='Выберите конец учебного месяца (воскресенье).'
     )
@@ -82,7 +83,7 @@ class Month(models.Model):
     class Meta:
         verbose_name = 'месяц'
         verbose_name_plural = 'Месяцы'
-        ordering = ('start_month',)
+        ordering = ('start',)
         constraints = (
             models.UniqueConstraint(
                 fields=('title', 'year',),
@@ -94,28 +95,60 @@ class Month(models.Model):
         return self.title
 
     def clean(self):
-        validate_len_interval(self.start_month, self.end_month)
-        error_month_sample = ('Значение {field} попадает в интервал '
-                              'другого месяца.')
-        start_month_obj = Month.objects.filter(
-            start_month__lte=self.start_month,
-            end_month__gte=self.start_month
-        ).first()
-        end_month_obj = Month.objects.filter(
-            start_month__lte=self.end_month,
-            end_month__gte=self.end_month
-        ).first()
-        fields = ('start_month', 'end_month')
-        objects = (start_month_obj, end_month_obj)
-        zipped = zip(fields, objects)
-        if start_month_obj is not None or end_month_obj is not None:
-            error_message = [error_month_sample.format(field=field) for field,
-                             object in zipped if object is not None]
-            raise ValidationError(error_message)
+        validate_len_interval(self.__class__.__name__, self.start, self.end)
+        validate_exist_interval(self.__class__.__name__, self.start, self.end)
         return super().clean()
 
     def save(self, *args, **kwargs):
-        average_date = self.start_month + datetime.timedelta(days=15)
-        self.year = Year.objects.get(year=average_date.year)
+        average_date = self.start + datetime.timedelta(days=15)
+        self.year, _ = Year.objects.get_or_create(year=average_date.year)
         self.title = RUSSIAN_MONTHS[average_date.month]
         return super().save(*args, **kwargs)
+
+
+class Week(models.Model):
+    title = models.CharField(
+        max_length=10,
+        blank=True,
+        verbose_name='Заголовок',
+        help_text=('Если создаете неделю самостоятельно обязательно укажите '
+                   'название и номер недели.')
+    )
+    month = models.ForeignKey(
+        Month,
+        blank=True,
+        on_delete=models.CASCADE,
+        verbose_name='Месяц',
+        related_name='weeks',
+        help_text=('Если создаете неделю самостоятельно обязательно укажите '
+                   'требуемый месяц.')
+    )
+    start = models.DateField(
+        validators=[right_start, right_year],
+        verbose_name='Начало учебной недели',
+        help_text='Выберите начало учебной недели (понедельник).'
+    )
+    end = models.DateField(
+        validators=[right_end, right_year],
+        verbose_name='Конец учебной недели',
+        help_text='Выберите конец учебной недели (воскресенье).'
+    )
+
+    class Meta:
+        verbose_name = 'неделя'
+        verbose_name_plural = 'Недели'
+        ordering = ('start',)
+        constraints = (
+            models.UniqueConstraint(
+                fields=('title', 'month',),
+                name='unique_title_month',
+            ),
+        )
+
+    def __str__(self):
+        return self.title
+
+    def clean(self):
+        validate_len_interval(self.__class__.__name__, self.start, self.end)
+        validate_exist_interval(self.__class__.__name__, self.start, self.end)
+        return super().clean()
