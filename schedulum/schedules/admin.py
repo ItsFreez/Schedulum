@@ -13,6 +13,16 @@ class MonthAdmin(admin.ModelAdmin):
     )
 
 
+class WeekAdmin(admin.ModelAdmin):
+    list_display = (
+        'title',
+        'month',
+    )
+    list_filter = (
+        'month',
+    )
+
+
 admin.site.register(Month, MonthAdmin)
-admin.site.register(Week)
+admin.site.register(Week, WeekAdmin)
 admin.site.register(Year)

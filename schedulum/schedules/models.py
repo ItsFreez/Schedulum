@@ -6,7 +6,7 @@ from django.db import models
 
 from schedules.validators import (
     right_end, right_start, right_year, validate_len_interval,
-    validate_exist_interval
+    validate_month_obj, validate_exist_interval
 )
 
 RUSSIAN_MONTHS = {
@@ -92,7 +92,7 @@ class Month(models.Model):
         )
 
     def __str__(self):
-        return self.title
+        return f'{self.title} {self.year.title}'
 
     def clean(self):
         validate_len_interval(self.__class__.__name__, self.start, self.end)
@@ -120,8 +120,7 @@ class Week(models.Model):
         on_delete=models.CASCADE,
         verbose_name='Месяц',
         related_name='weeks',
-        help_text=('Если создаете неделю самостоятельно обязательно укажите '
-                   'требуемый месяц.')
+        help_text='Это поле автоматически заполнится, оставьте пустым.'
     )
     start = models.DateField(
         validators=[right_start, right_year],
@@ -149,6 +148,11 @@ class Week(models.Model):
         return self.title
 
     def clean(self):
+        validate_month_obj(self.__class__.__name__, self.start)
         validate_len_interval(self.__class__.__name__, self.start, self.end)
         validate_exist_interval(self.__class__.__name__, self.start, self.end)
         return super().clean()
+
+    def save(self, *args, **kwargs):
+        self.month = validate_month_obj(self.__class__.__name__, self.start)
+        return super().save(*args, **kwargs)

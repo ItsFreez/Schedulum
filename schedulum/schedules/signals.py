@@ -5,7 +5,7 @@ from django.dispatch import receiver
 from schedules.models import Month, Week
 
 
-@receiver(post_save, sender=Month)
+@receiver(post_save, sender=Month, dispatch_uid='unique_signal')
 def create_weeks(sender, instance, created, **kwargs):
     if created:
         difference = instance.end - instance.start

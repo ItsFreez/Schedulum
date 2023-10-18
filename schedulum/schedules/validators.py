@@ -34,14 +34,19 @@ def right_year(date):
 
 
 def validate_len_interval(model_name, start, end):
+    if end <= start:
+        raise ValidationError('Начало интервала не может быть позже конца.')
     difference = end - start
+    true_diff = difference.days + 1
+    count_weeks = true_diff // 7
     if model_name == 'Month':
-        if difference.days > 34:
-            raise ValidationError('Указан слишком длинный промежуток.')
-        elif difference.days < 27:
-            raise ValidationError('Указан слишком короткий промежуток.')
-    elif model_name == 'Week' and difference.days != 6:
-        raise ValidationError('Указан неверный промежуток недели.')
+        if count_weeks < 4 or count_weeks > 5:
+            raise ValidationError('Интервал должен содержать 4 или 5 недель.')
+        if true_diff % 7 != 0:
+            raise ValidationError('Все недели в указанном интервале должны '
+                                  'содержать 7 дней.')
+    if model_name == 'Week' and true_diff != 7:
+        raise ValidationError('Неделя должна содержать 7 дней.')
     return None
 
 
@@ -64,3 +69,14 @@ def validate_exist_interval(model_name, start, end):
         error_message = [error_sample.format(field=field) for field,
                          object in zipped if object is not None]
         raise ValidationError(error_message)
+
+
+def validate_month_obj(model_name, value):
+    model = apps.get_model(app_label='schedules', model_name=model_name)
+    model_obj = model.objects.filter(
+            start__lte=value,
+            end__gte=value
+    ).first()
+    if model_obj is None:
+        raise ValidationError('Необходимо изначально создать месяц.')
+    return model_obj
