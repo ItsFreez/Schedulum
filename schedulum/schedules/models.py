@@ -148,11 +148,11 @@ class Week(models.Model):
         return self.title
 
     def clean(self):
-        validate_month_obj(self.__class__.__name__, self.start)
+        validate_month_obj(Month.__name__, self.start)
         validate_len_interval(self.__class__.__name__, self.start, self.end)
         validate_exist_interval(self.__class__.__name__, self.start, self.end)
         return super().clean()
 
     def save(self, *args, **kwargs):
-        self.month = validate_month_obj(self.__class__.__name__, self.start)
+        self.month = validate_month_obj(Month.__name__, self.start)
         return super().save(*args, **kwargs)
