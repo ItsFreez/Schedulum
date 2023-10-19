@@ -90,13 +90,13 @@ class Month(ValidationMonthMixin, ValidationMonthAndWeekIntervalMixin,
         return f'{self.title} {self.year.title}'
 
     def clean(self):
-        self.validate_higher_obj(Year.__name__)
+        self.validate_related_obj()
         self.validate_interval()
         self.validate_len_interval()
         return super().clean()
 
     def save(self, *args, **kwargs):
-        self.year = self.get_higher_obj(Year.__name__)
+        self.year = self.get_related_obj()
         self.title = RUSSIAN_MONTHS[self.get_average_date().month]
         return super().save(*args, **kwargs)
 
@@ -143,15 +143,15 @@ class Week(ValidationMonthAndWeekIntervalMixin, ValidationWeekMixin,
         return f'{self.title} {self.month.title}'
 
     def clean(self):
-        self.validate_higher_obj(Month.__name__)
+        self.validate_related_obj()
         self.validate_interval()
         self.validate_len_interval()
         return super().clean()
 
     def save(self, *args, **kwargs):
-        count_weeks = self.get_count_weeks(Month.__name__)
+        count_weeks = self.get_count_weeks()
         self.title = f'Неделя {count_weeks + 1}'
-        self.month = self.get_higher_obj(Month.__name__)
+        self.month = self.get_related_obj()
         return super().save(*args, **kwargs)
 
 

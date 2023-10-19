@@ -9,8 +9,9 @@ ERROR_HIGHER_OBJ_SAMPLE = 'Необходимо изначально созда�
 
 class GetModel():
 
-    def get_model(self, model_name):
-        return apps.get_model(app_label='schedules', model_name=model_name)
+    def get_model(self):
+        return apps.get_model(app_label='schedules',
+                              model_name=self.__class__.__name__)
 
 
 class TrueDiffInterval():
@@ -25,16 +26,19 @@ class ValidationMonthMixin(GetModel, TrueDiffInterval):
     def get_average_date(self):
         return self.start + datetime.timedelta(days=10)
 
-    def get_higher_obj(self, model_name):
-        model = self.get_model(model_name)
+    def get_related_model(self):
+        model = self.get_model()
+        return model._meta.get_field('year').related_model
+
+    def get_related_obj(self):
+        model = self.get_related_model()
         average_date = self.get_average_date()
         return model.objects.filter(year=average_date.year).first()
 
-    def validate_higher_obj(self, model_name):
-        model = self.get_model(model_name)
-        model_obj = self.get_higher_obj(model_name)
-        field = model._meta.verbose_name
-        if model_obj is None:
+    def validate_related_obj(self):
+        related_model_obj = self.get_related_obj()
+        field = self.get_related_model()._meta.verbose_name.title()
+        if related_model_obj is None:
             raise ValidationError(ERROR_HIGHER_OBJ_SAMPLE.format(field=field))
         return None
 
@@ -58,7 +62,7 @@ class ValidationMonthAndWeekIntervalMixin(GetModel):
 
     def validate_exist_interval(self):
         error_sample = 'Значение "{field}" попадает в другой интервал.'
-        model = self.get_model(self.__class__.__name__)
+        model = self.get_model()
         start_obj = model.objects.filter(start__lte=self.start,
                                          end__gte=self.start).first()
         end_obj = model.objects.filter(start__lte=self.end,
@@ -83,23 +87,26 @@ class ValidationMonthAndWeekIntervalMixin(GetModel):
 
 class ValidationWeekMixin(GetModel, TrueDiffInterval):
 
-    def get_count_weeks(self, model_name):
-        model_queryset = self.get_higher_model_queryset(model_name)
+    def get_count_weeks(self):
+        model_queryset = self.get_related_model_queryset()
         model_obj = model_queryset.annotate(count_weeks=Count('weeks')).first()
         return model_obj.count_weeks
 
-    def get_higher_model_queryset(self, model_name):
-        model = self.get_model(model_name)
+    def get_related_model(self):
+        model = self.get_model()
+        return model._meta.get_field('month').related_model
+
+    def get_related_model_queryset(self):
+        model = self.get_related_model()
         return model.objects.filter(start__lte=self.start, end__gte=self.start)
 
-    def get_higher_obj(self, model_name):
-        return self.get_higher_model_queryset(model_name).first()
+    def get_related_obj(self):
+        return self.get_related_model_queryset().first()
 
-    def validate_higher_obj(self, model_name):
-        model = self.get_model(model_name)
-        model_obj = self.get_higher_obj(model_name)
-        field = model._meta.verbose_name.title()
-        if model_obj is None:
+    def validate_related_obj(self):
+        related_model_obj = self.get_related_obj()
+        field = self.get_related_model()._meta.verbose_name.title()
+        if related_model_obj is None:
             raise ValidationError(ERROR_HIGHER_OBJ_SAMPLE.format(field=field))
         return None
 
