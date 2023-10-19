@@ -71,9 +71,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ru-RU'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/Moscow'
 
 USE_I18N = True
 
@@ -91,18 +91,28 @@ CURRENT_YEAR = dt.date.today().year
 
 NEXT_YEAR = dt.date.today().year + 1
 
-CURRENT_AUGUST = dt.date(year=CURRENT_YEAR, month=8, day=27)
+VALIDATE_DATES = {
+    'CURRENT_AUGUST': dt.date(year=CURRENT_YEAR, month=8, day=29),
+    'CURRENT_END_AUGUST': dt.date(year=CURRENT_YEAR, month=8, day=31),
+    'NEXT_AUGUST': dt.date(year=NEXT_YEAR, month=8, day=29),
+    'NEXT_END_AUGUST': dt.date(year=NEXT_YEAR, month=8, day=31),
+    'CURRENT_JULY': dt.date(year=CURRENT_YEAR, month=7, day=1),
+    'CURRENT_START_JULY': dt.date(year=CURRENT_YEAR, month=7, day=6),
+    'NEXT_JULY': dt.date(year=NEXT_YEAR, month=7, day=1),
+    'NEXT_START_JULY': dt.date(year=NEXT_YEAR, month=7, day=6)
+}
 
-CURRENT_END_AUGUST = dt.date(year=CURRENT_YEAR, month=8, day=31)
-
-CURRENT_JULY = dt.date(year=CURRENT_YEAR, month=7, day=1)
-
-CURRENT_START_JULY = dt.date(year=CURRENT_YEAR, month=7, day=6)
-
-NEXT_AUGUST = dt.date(year=NEXT_YEAR, month=8, day=27)
-
-NEXT_END_AUGUST = dt.date(year=NEXT_YEAR, month=8, day=31)
-
-NEXT_JULY = dt.date(year=NEXT_YEAR, month=7, day=1)
-
-NEXT_START_JULY = dt.date(year=NEXT_YEAR, month=7, day=6)
+RUSSIAN_MONTHS = {
+    1: 'Январь',
+    2: 'Февраль',
+    3: 'Март',
+    4: 'Апрель',
+    5: 'Май',
+    6: 'Июнь',
+    7: 'Июль',
+    8: 'Август',
+    9: 'Сентябрь',
+    10: 'Октябрь',
+    11: 'Ноябрь',
+    12: 'Декабрь'
+}

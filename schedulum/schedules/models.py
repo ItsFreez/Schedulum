@@ -1,28 +1,15 @@
-import datetime
-
+from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.conf import settings
 from django.db import models
 
-from schedules.validators import (
-    right_end, right_start, right_year, validate_len_interval,
-    validate_month_obj, validate_exist_interval
+from schedules.mixins import (
+    ValidationMonthMixin, ValidationMonthAndWeekIntervalMixin,
+    ValidationWeekMixin
 )
+from schedules.validators import correct_end, correct_start
 
-RUSSIAN_MONTHS = {
-    1: 'Январь',
-    2: 'Февраль',
-    3: 'Март',
-    4: 'Апрель',
-    5: 'Май',
-    6: 'Июнь',
-    7: 'Июль',
-    8: 'Август',
-    9: 'Сентябрь',
-    10: 'Октябрь',
-    11: 'Ноябрь',
-    12: 'Декабрь'
-}
+RUSSIAN_MONTHS = settings.RUSSIAN_MONTHS
 
 
 class Year(models.Model):
@@ -49,12 +36,18 @@ class Year(models.Model):
     def __str__(self):
         return self.title
 
+    def clean(self):
+        if Year.objects.filter(year=self.year).first() is not None:
+            raise ValidationError('Такой год уже существует.')
+        return super().clean()
+
     def save(self, *args, **kwargs):
         self.title = str(self.year) + ' год'
         return super().save(*args, **kwargs)
 
 
-class Month(models.Model):
+class Month(ValidationMonthMixin, ValidationMonthAndWeekIntervalMixin,
+            models.Model):
     title = models.CharField(
         max_length=10,
         blank=True,
@@ -70,12 +63,12 @@ class Month(models.Model):
         help_text='Это поле автоматически заполнится, оставьте пустым.'
     )
     start = models.DateField(
-        validators=[right_start, right_year],
+        validators=[correct_start],
         verbose_name='Начало учебного месяца',
         help_text='Выберите начало учебного месяца (понедельник).'
     )
     end = models.DateField(
-        validators=[right_end, right_year],
+        validators=[correct_end],
         verbose_name='Конец учебного месяца',
         help_text='Выберите конец учебного месяца (воскресенье).'
     )
@@ -95,18 +88,19 @@ class Month(models.Model):
         return f'{self.title} {self.year.title}'
 
     def clean(self):
-        validate_len_interval(self.__class__.__name__, self.start, self.end)
-        validate_exist_interval(self.__class__.__name__, self.start, self.end)
+        self.validate_higher_obj(Year.__name__)
+        self.validate_interval()
+        self.validate_len_interval()
         return super().clean()
 
     def save(self, *args, **kwargs):
-        average_date = self.start + datetime.timedelta(days=15)
-        self.year, _ = Year.objects.get_or_create(year=average_date.year)
-        self.title = RUSSIAN_MONTHS[average_date.month]
+        self.year = self.get_higher_obj(Year.__name__)
+        self.title = RUSSIAN_MONTHS[self.get_average_date().month]
         return super().save(*args, **kwargs)
 
 
-class Week(models.Model):
+class Week(ValidationMonthAndWeekIntervalMixin, ValidationWeekMixin,
+           models.Model):
     title = models.CharField(
         max_length=10,
         blank=True,
@@ -123,12 +117,12 @@ class Week(models.Model):
         help_text='Это поле автоматически заполнится, оставьте пустым.'
     )
     start = models.DateField(
-        validators=[right_start, right_year],
+        validators=[correct_start],
         verbose_name='Начало учебной недели',
         help_text='Выберите начало учебной недели (понедельник).'
     )
     end = models.DateField(
-        validators=[right_end, right_year],
+        validators=[correct_end],
         verbose_name='Конец учебной недели',
         help_text='Выберите конец учебной недели (воскресенье).'
     )
@@ -145,14 +139,14 @@ class Week(models.Model):
         )
 
     def __str__(self):
-        return self.title
+        return f'{self.title} {self.month.title}'
 
     def clean(self):
-        validate_month_obj(Month.__name__, self.start)
-        validate_len_interval(self.__class__.__name__, self.start, self.end)
-        validate_exist_interval(self.__class__.__name__, self.start, self.end)
+        self.validate_higher_obj(Month.__name__)
+        self.validate_interval()
+        self.validate_len_interval()
         return super().clean()
 
     def save(self, *args, **kwargs):
-        self.month = validate_month_obj(Month.__name__, self.start)
+        self.month = self.get_higher_obj(Month.__name__)
         return super().save(*args, **kwargs)
