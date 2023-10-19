@@ -2,6 +2,7 @@ import datetime
 
 from django.apps import apps
 from django.core.exceptions import ValidationError
+from django.db.models import Count
 
 ERROR_HIGHER_OBJ_SAMPLE = 'Необходимо изначально создать "{field}".'
 
@@ -81,6 +82,11 @@ class ValidationMonthAndWeekIntervalMixin(GetModel):
 
 
 class ValidationWeekMixin(GetModel, TrueDiffInterval):
+
+    def get_count_weeks(self, model_name):
+        model_queryset = self.get_higher_model_queryset(model_name)
+        model_obj = model_queryset.annotate(count_weeks=Count('weeks')).first()
+        return model_obj.count_weeks
 
     def get_higher_model_queryset(self, model_name):
         model = self.get_model(model_name)

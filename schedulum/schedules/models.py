@@ -3,7 +3,6 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.db import models
-from django.db.models import Count
 
 from schedules.mixins import (
     ValidationMonthMixin, ValidationMonthAndWeekIntervalMixin,
@@ -150,10 +149,8 @@ class Week(ValidationMonthAndWeekIntervalMixin, ValidationWeekMixin,
         return super().clean()
 
     def save(self, *args, **kwargs):
-        month_obj = self.get_higher_model_queryset(
-            Month.__name__
-        ).annotate(count_weeks=Count('weeks')).first()
-        self.title = f'Неделя {month_obj.count_weeks + 1}'
+        count_weeks = self.get_count_weeks(Month.__name__)
+        self.title = f'Неделя {count_weeks + 1}'
         self.month = self.get_higher_obj(Month.__name__)
         return super().save(*args, **kwargs)
 
