@@ -82,10 +82,12 @@ class ValidationMonthAndWeekIntervalMixin(GetModel):
 
 class ValidationWeekMixin(GetModel, TrueDiffInterval):
 
-    def get_higher_obj(self, model_name):
+    def get_higher_model_queryset(self, model_name):
         model = self.get_model(model_name)
-        return model.objects.filter(start__lte=self.start,
-                                    end__gte=self.start).first()
+        return model.objects.filter(start__lte=self.start, end__gte=self.start)
+
+    def get_higher_obj(self, model_name):
+        return self.get_higher_model_queryset(model_name).first()
 
     def validate_higher_obj(self, model_name):
         model = self.get_model(model_name)

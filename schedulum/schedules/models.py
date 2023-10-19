@@ -1,7 +1,9 @@
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.db import models
+from django.db.models import Count
 
 from schedules.mixins import (
     ValidationMonthMixin, ValidationMonthAndWeekIntervalMixin,
@@ -9,6 +11,7 @@ from schedules.mixins import (
 )
 from schedules.validators import correct_end, correct_start
 
+User = get_user_model()
 RUSSIAN_MONTHS = settings.RUSSIAN_MONTHS
 
 
@@ -105,8 +108,7 @@ class Week(ValidationMonthAndWeekIntervalMixin, ValidationWeekMixin,
         max_length=10,
         blank=True,
         verbose_name='Заголовок',
-        help_text=('Если создаете неделю самостоятельно обязательно укажите '
-                   'название и номер недели.')
+        help_text='Это поле автоматически заполнится, оставьте пустым.'
     )
     month = models.ForeignKey(
         Month,
@@ -148,5 +150,28 @@ class Week(ValidationMonthAndWeekIntervalMixin, ValidationWeekMixin,
         return super().clean()
 
     def save(self, *args, **kwargs):
+        month_obj = self.get_higher_model_queryset(
+            Month.__name__
+        ).annotate(count_weeks=Count('weeks')).first()
+        self.title = f'Неделя {month_obj.count_weeks + 1}'
         self.month = self.get_higher_obj(Month.__name__)
         return super().save(*args, **kwargs)
+
+
+class Schedule(models.Model):
+    text = models.TextField(
+        max_length=500,
+        verbose_name='Расписание пар',
+        help_text='Обязательное. Укажите время, название и аудиторию пары.'
+    )
+    additionally_text = models.TextField(
+        max_length=500,
+        blank=True,
+        null=True,
+        verbose_name='Заметок',
+        help_text='Необязательное. Можно написать заметки для себя.'
+    )
+    date = models.DateField(
+        verbose_name='Дата',
+        help_text='Обязательное. Выберите дату для расписания.'
+    )
