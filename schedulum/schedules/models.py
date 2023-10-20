@@ -105,9 +105,8 @@ class Week(ValidationMonthAndWeekIntervalMixin, ValidationWeekMixin,
            models.Model):
     title = models.CharField(
         max_length=10,
-        blank=True,
         verbose_name='Заголовок',
-        help_text='Это поле автоматически заполнится, оставьте пустым.'
+        help_text='Укажите название и номер недели.'
     )
     month = models.ForeignKey(
         Month,
@@ -149,8 +148,6 @@ class Week(ValidationMonthAndWeekIntervalMixin, ValidationWeekMixin,
         return super().clean()
 
     def save(self, *args, **kwargs):
-        count_weeks = self.get_count_weeks()
-        self.title = f'Неделя {count_weeks + 1}'
         self.month = self.get_related_obj()
         return super().save(*args, **kwargs)
 
