@@ -8,10 +8,29 @@ from schedules.mixins import (
     ValidationMonthMixin, ValidationMonthAndWeekIntervalMixin,
     ValidationWeekMixin
 )
-from schedules.validators import correct_end, correct_start
+from schedules.validators import (correct_end, correct_start,
+                                  validate_exist_week)
 
 User = get_user_model()
 RUSSIAN_MONTHS = settings.RUSSIAN_MONTHS
+RATE_CHOICES = (
+    (1, 'Каждую неделю'),
+    (2, 'Раз в 2 недели'),
+    (3, 'Раз в 3 недели'),
+    (4, 'Раз в 4 недели'),
+)
+COUNT_CHOICES = (
+    (1, 1),
+    (2, 2),
+    (3, 3),
+    (4, 4),
+    (5, 5),
+    (6, 6),
+    (7, 7),
+    (8, 8),
+    (9, 9),
+    (10, 10),
+)
 
 
 class Year(models.Model):
@@ -162,10 +181,59 @@ class Schedule(models.Model):
         max_length=500,
         blank=True,
         null=True,
-        verbose_name='Заметок',
+        verbose_name='Заметки',
         help_text='Необязательное. Можно написать заметки для себя.'
     )
     date = models.DateField(
+        validators=[validate_exist_week],
         verbose_name='Дата',
         help_text='Обязательное. Выберите дату для расписания.'
     )
+    repetition_rate = models.SmallIntegerField(
+        blank=True,
+        null=True,
+        choices=RATE_CHOICES,
+        verbose_name='Частота повторения',
+        help_text='Необязательно. Выберите как часто будет повторяться.'
+    )
+    repetition_count = models.SmallIntegerField(
+        blank=True,
+        null=True,
+        choices=COUNT_CHOICES,
+        verbose_name='Количество повторений',
+        help_text='Необязательное. Выберите сколько раз будет повторяться.'
+    )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name='Автор расписания',
+        help_text='Обязательное. Выберите автора.'
+    )
+    week = models.ManyToManyField(
+        Week,
+        blank=True,
+        verbose_name='Недели',
+        help_text='Это поле автоматически заполнится, оставьте пустым.'
+    )
+
+    class Meta:
+        default_related_name = 'schedules'
+        verbose_name = 'расписание'
+        verbose_name_plural = 'Расписания'
+        ordering = ('week', 'date', 'author',)
+        constraints = (
+            models.UniqueConstraint(
+                fields=('date', 'author',),
+                name='unique_date_author',
+            ),
+        )
+
+    def __str__(self):
+        str_date = self.date.strftime('%Y-%m-%d')
+        return f'{str_date} {self.author.username}'
+
+    def clean(self):
+        return super().clean()
+
+    def save(self, *args, **kwargs):
+        return super().save(*args, **kwargs)
