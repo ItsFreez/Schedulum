@@ -5,8 +5,8 @@ from django.contrib.auth import get_user_model
 from django.db import models
 
 from schedules.mixins import (
-    ValidationMonthMixin, ValidationMonthAndWeekIntervalMixin,
-    ValidationWeekMixin
+    MonthMixin, ValidationMonthAndWeekIntervalMixin,
+    WeekMixin
 )
 from schedules.validators import (correct_end, correct_start,
                                   validate_exist_week)
@@ -67,8 +67,7 @@ class Year(models.Model):
         return super().save(*args, **kwargs)
 
 
-class Month(ValidationMonthMixin, ValidationMonthAndWeekIntervalMixin,
-            models.Model):
+class Month(MonthMixin, ValidationMonthAndWeekIntervalMixin, models.Model):
     title = models.CharField(
         max_length=10,
         blank=True,
@@ -120,8 +119,7 @@ class Month(ValidationMonthMixin, ValidationMonthAndWeekIntervalMixin,
         return super().save(*args, **kwargs)
 
 
-class Week(ValidationMonthAndWeekIntervalMixin, ValidationWeekMixin,
-           models.Model):
+class Week(ValidationMonthAndWeekIntervalMixin, WeekMixin, models.Model):
     title = models.CharField(
         max_length=10,
         verbose_name='Заголовок',

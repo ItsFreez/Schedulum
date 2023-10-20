@@ -20,7 +20,7 @@ class TrueDiffInterval():
         return difference.days + 1
 
 
-class ValidationMonthMixin(GetModel, TrueDiffInterval):
+class MonthMixin(GetModel, TrueDiffInterval):
 
     def get_average_date(self):
         return self.start + datetime.timedelta(days=10)
@@ -84,7 +84,7 @@ class ValidationMonthAndWeekIntervalMixin(GetModel):
         return None
 
 
-class ValidationWeekMixin(GetModel, TrueDiffInterval):
+class WeekMixin(GetModel, TrueDiffInterval):
 
     def get_related_model(self):
         model = self.get_model()
