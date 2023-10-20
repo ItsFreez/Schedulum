@@ -62,10 +62,10 @@ class ValidationMonthAndWeekIntervalMixin(GetModel):
     def validate_exist_interval(self):
         error_sample = 'Значение "{field}" попадает в другой интервал.'
         model = self.get_model()
-        start_obj = model.objects.filter(start__lte=self.start,
-                                         end__gte=self.start).first()
-        end_obj = model.objects.filter(start__lte=self.end,
-                                       end__gte=self.end).first()
+        start_obj = model.objects.filter(start__lt=self.start,
+                                         end__gt=self.start).first()
+        end_obj = model.objects.filter(start__lt=self.end,
+                                       end__gt=self.end).first()
         fields = (model._meta.get_field('start').verbose_name,
                   model._meta.get_field('end').verbose_name)
         objects = (start_obj, end_obj)
