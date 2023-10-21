@@ -1,3 +1,5 @@
+import locale
+
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.conf import settings
@@ -6,13 +8,13 @@ from django.db import models
 
 from schedules.mixins import (
     MonthMixin, ValidationMonthAndWeekIntervalMixin,
-    WeekMixin
+    ScheduleMixin, WeekMixin
 )
 from schedules.validators import (correct_end, correct_start,
-                                  validate_exist_week)
+                                  validate_exist_week, validate_sunday)
 
+locale.setlocale(category=locale.LC_ALL, locale="Russian")
 User = get_user_model()
-RUSSIAN_MONTHS = settings.RUSSIAN_MONTHS
 RATE_CHOICES = (
     (1, 'Каждую неделю'),
     (2, 'Раз в 2 недели'),
@@ -115,7 +117,7 @@ class Month(MonthMixin, ValidationMonthAndWeekIntervalMixin, models.Model):
 
     def save(self, *args, **kwargs):
         self.year = self.get_related_obj()
-        self.title = RUSSIAN_MONTHS[self.get_average_date().month]
+        self.title = self.get_average_date().strftime('%B')
         return super().save(*args, **kwargs)
 
 
@@ -169,7 +171,7 @@ class Week(ValidationMonthAndWeekIntervalMixin, WeekMixin, models.Model):
         return super().save(*args, **kwargs)
 
 
-class Schedule(models.Model):
+class Schedule(ScheduleMixin, models.Model):
     text = models.TextField(
         max_length=500,
         verbose_name='Расписание пар',
@@ -183,7 +185,7 @@ class Schedule(models.Model):
         help_text='Необязательное. Можно написать заметки для себя.'
     )
     date = models.DateField(
-        validators=[validate_exist_week],
+        validators=[validate_exist_week, validate_sunday],
         verbose_name='Дата',
         help_text='Обязательное. Выберите дату для расписания.'
     )
@@ -218,7 +220,7 @@ class Schedule(models.Model):
         default_related_name = 'schedules'
         verbose_name = 'расписание'
         verbose_name_plural = 'Расписания'
-        ordering = ('week', 'date', 'author',)
+        ordering = ('date', 'author',)
         constraints = (
             models.UniqueConstraint(
                 fields=('date', 'author',),
@@ -227,10 +229,11 @@ class Schedule(models.Model):
         )
 
     def __str__(self):
-        str_date = self.date.strftime('%Y-%m-%d')
+        str_date = self.date.strftime('%d %B %Y')
         return f'{str_date} {self.author.username}'
 
     def clean(self):
+        self.validate_empty_repetition()
         return super().clean()
 
     def save(self, *args, **kwargs):

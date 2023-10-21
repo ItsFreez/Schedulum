@@ -19,6 +19,8 @@ def correct_start(date):
     if (DATES['CURRENT_JULY'] < date < DATES['CURRENT_AUGUST']
             or DATES['NEXT_JULY'] < date < DATES['NEXT_AUGUST']):
         raise ValidationError(INVALID_PAST_ERROR)
+    if date.weekday() != 0:
+        raise ValidationError('Промежуток должен начинаться с понедельника.')
     return date
 
 
@@ -26,6 +28,14 @@ def correct_end(date):
     if (DATES['CURRENT_START_JULY'] < date < DATES['CURRENT_END_AUGUST']
             or DATES['NEXT_START_JULY'] < date < DATES['NEXT_END_AUGUST']):
         raise ValidationError(INVALID_PAST_ERROR)
+    if date.weekday() != 6:
+        raise ValidationError('Промежуток должен заканчиваться в воскресенье.')
+    return date
+
+
+def validate_sunday(date):
+    if date.weekday() == 6:
+        raise ValidationError('Воскресенье неучебный день.')
     return date
 
 

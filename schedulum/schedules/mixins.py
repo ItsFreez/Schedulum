@@ -84,6 +84,16 @@ class ValidationMonthAndWeekIntervalMixin(GetModel):
         return None
 
 
+class ScheduleMixin():
+
+    def validate_empty_repetition(self):
+        repetition_list = [self.repetition_rate, self.repetition_count]
+        if any(repetition_list) and not all(repetition_list):
+            raise ValidationError('При назначении повторения должны быть '
+                                  'указаны количество и частота.')
+        return None
+
+
 class WeekMixin(GetModel, TrueDiffInterval):
 
     def get_related_model(self):
