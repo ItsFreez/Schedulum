@@ -220,8 +220,8 @@ class Schedule(ScheduleMixin, models.Model):
     week = models.ManyToManyField(
         Week,
         blank=True,
+        editable=False,
         verbose_name='Недели',
-        help_text='Это поле автоматически заполнится, оставьте пустым.'
     )
 
     class Meta:
