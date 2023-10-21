@@ -11,7 +11,7 @@ from schedules.mixins import (
     ScheduleMixin, WeekMixin
 )
 from schedules.validators import (correct_end, correct_start,
-                                  validate_exist_week, validate_sunday)
+                                  validate_sunday)
 
 locale.setlocale(category=locale.LC_ALL, locale="Russian")
 User = get_user_model()
@@ -104,6 +104,10 @@ class Month(MonthMixin, ValidationMonthAndWeekIntervalMixin, models.Model):
                 fields=('title', 'year',),
                 name='unique_title_year',
             ),
+            models.UniqueConstraint(
+                fields=('start', 'end',),
+                name='unique_start_end_month',
+            ),
         )
 
     def __str__(self):
@@ -155,6 +159,10 @@ class Week(ValidationMonthAndWeekIntervalMixin, WeekMixin, models.Model):
                 fields=('title', 'month',),
                 name='unique_title_month',
             ),
+            models.UniqueConstraint(
+                fields=('start', 'end',),
+                name='unique_start_end_week',
+            ),
         )
 
     def __str__(self):
@@ -185,7 +193,7 @@ class Schedule(ScheduleMixin, models.Model):
         help_text='Необязательное. Можно написать заметки для себя.'
     )
     date = models.DateField(
-        validators=[validate_exist_week, validate_sunday],
+        validators=[validate_sunday],
         verbose_name='Дата',
         help_text='Обязательное. Выберите дату для расписания.'
     )
@@ -233,6 +241,7 @@ class Schedule(ScheduleMixin, models.Model):
         return f'{str_date} {self.author.username}'
 
     def clean(self):
+        self.validate_exist_week(self.date)
         self.validate_empty_repetition()
         return super().clean()
 

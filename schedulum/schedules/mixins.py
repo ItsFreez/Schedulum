@@ -23,7 +23,7 @@ class TrueDiffInterval():
 class MonthMixin(GetModel, TrueDiffInterval):
 
     def get_average_date(self):
-        return self.start + datetime.timedelta(days=10)
+        return self.start + datetime.timedelta(days=15)
 
     def get_related_model(self):
         model = self.get_model()
@@ -84,13 +84,42 @@ class ValidationMonthAndWeekIntervalMixin(GetModel):
         return None
 
 
-class ScheduleMixin():
+class ScheduleMixin(GetModel):
+
+    def get_related_model(self):
+        model = self.get_model()
+        return model._meta.get_field('week').related_model
+
+    def get_related_obj(self, date):
+        model = self.get_related_model()
+        return model.objects.filter(start__lte=date, end__gte=date).first()
+
+    def get_related_week_objects(self, date):
+        week_objects = []
+        if self.repetition_rate and self.repetition_count:
+            for repeat in range(1, self.repetition_count + 1):
+                new_date = date + datetime.timedelta(
+                    days=((7 * self.repetition_rate) * repeat)
+                )
+                self.validate_exist_week(new_date)
+                week_obj = self.get_related_obj(new_date)
+                week_objects.append(week_obj)
+        basic_week_obj = self.get_related_obj(date)
+        week_objects.append(basic_week_obj)
+        return week_objects
 
     def validate_empty_repetition(self):
         repetition_list = [self.repetition_rate, self.repetition_count]
         if any(repetition_list) and not all(repetition_list):
             raise ValidationError('При назначении повторения должны быть '
                                   'указаны количество и частота.')
+        return None
+
+    def validate_exist_week(self, date):
+        week_obj = self.get_related_obj(date)
+        if week_obj is None:
+            raise ValidationError('Вы пытаетесь добавить или повторить '
+                                  'расписание на несуществующую неделю.')
         return None
 
 

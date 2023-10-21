@@ -1,14 +1,11 @@
 import datetime as dt
 
-from django.apps import apps
 from django.core.exceptions import ValidationError
 from django.conf import settings
 
 CURRENT_MONTH = settings.CURRENT_MONTH
 CURRENT_YEAR = settings.CURRENT_YEAR
 DATES = settings.VALIDATE_DATES
-NOT_EXIST_WEEK_ERROR = ('Вы пытаетесь добавить расписание '
-                        'на несуществующую неделю.')
 INVALID_PAST_ERROR = 'Август и Июль неучебные месяцы.'
 
 
@@ -36,12 +33,4 @@ def correct_end(date):
 def validate_sunday(date):
     if date.weekday() == 6:
         raise ValidationError('Воскресенье неучебный день.')
-    return date
-
-
-def validate_exist_week(date):
-    model = apps.get_model(app_label='schedules', model_name='Week')
-    obj = model.objects.filter(start__lte=date, end__gte=date).first()
-    if obj is None:
-        raise ValidationError(NOT_EXIST_WEEK_ERROR)
     return date
