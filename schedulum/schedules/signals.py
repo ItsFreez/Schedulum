@@ -2,7 +2,7 @@ import datetime as dt
 
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from schedules.models import Month, Schedule, Week
+from schedules.models import Month, Week
 
 
 @receiver(post_save, sender=Month, dispatch_uid='unique_signal')
@@ -22,13 +22,3 @@ def create_weeks(sender, instance, created, **kwargs):
                         start=start_week, end=end_week)
             all_weeks.append(week)
         Week.objects.bulk_create(all_weeks)
-
-
-@receiver(post_save, sender=Schedule, dispatch_uid='unique_sc_signal')
-def add_weeks(sender, instance, created, **kwargs):
-    if created:
-        print('Началось добавление объекта')
-        schedule = Schedule.objects.get(date=instance.date, author=instance.author)
-        week_obj = Week.objects.all()
-        schedule.week.set(week_obj)
-        print('Закончилось добавление объекта')

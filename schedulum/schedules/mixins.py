@@ -94,17 +94,16 @@ class ScheduleMixin(GetModel):
         model = self.get_related_model()
         return model.objects.filter(start__lte=date, end__gte=date).first()
 
-    def get_related_week_objects(self, date):
+    def get_related_week_objects(self):
         week_objects = []
         if self.repetition_rate and self.repetition_count:
             for repeat in range(1, self.repetition_count + 1):
-                new_date = date + datetime.timedelta(
+                new_date = self.date + datetime.timedelta(
                     days=((7 * self.repetition_rate) * repeat)
                 )
-                self.validate_exist_week(new_date)
                 week_obj = self.get_related_obj(new_date)
                 week_objects.append(week_obj)
-        basic_week_obj = self.get_related_obj(date)
+        basic_week_obj = self.get_related_obj(self.date)
         week_objects.append(basic_week_obj)
         return week_objects
 
@@ -115,9 +114,25 @@ class ScheduleMixin(GetModel):
                                   'указаны количество и частота.')
         return None
 
-    def validate_exist_week(self, date):
-        week_obj = self.get_related_obj(date)
-        if week_obj is None:
+    def validate_exist_schedule(self):
+        model = self.get_model()
+        current_schedule = model.objects.filter(date=self.date,
+                                                author=self.author).first()
+        for week_obj in self.get_related_week_objects():
+            schedule_objs = model.objects.filter(author=self.author,
+                                                 week=week_obj)
+            for schedule in schedule_objs:
+                if (schedule.date.weekday() == self.date.weekday()
+                        and schedule != current_schedule):
+                    raise ValidationError(
+                        'Ваше расписание попадает на день другого расписания. '
+                        'Или повтор совпадает с другим расписанием.'
+                    )
+        return None
+
+    def validate_exist_weeks(self):
+        week_objs = self.get_related_week_objects()
+        if None in week_objs:
             raise ValidationError('Вы пытаетесь добавить или повторить '
                                   'расписание на несуществующую неделю.')
         return None

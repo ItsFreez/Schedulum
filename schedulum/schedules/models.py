@@ -114,6 +114,7 @@ class Month(MonthMixin, ValidationMonthAndWeekIntervalMixin, models.Model):
         return f'{self.title} {self.year.title}'
 
     def clean(self):
+        super().clean_fields()
         self.validate_related_obj()
         self.validate_interval()
         self.validate_len_interval()
@@ -169,6 +170,7 @@ class Week(ValidationMonthAndWeekIntervalMixin, WeekMixin, models.Model):
         return f'{self.title} {self.month.title}'
 
     def clean(self):
+        super().clean_fields()
         self.validate_related_obj()
         self.validate_interval()
         self.validate_len_interval()
@@ -241,9 +243,12 @@ class Schedule(ScheduleMixin, models.Model):
         return f'{str_date} {self.author.username}'
 
     def clean(self):
-        self.validate_exist_week(self.date)
+        super().clean_fields()
         self.validate_empty_repetition()
+        self.validate_exist_weeks()
+        self.validate_exist_schedule()
         return super().clean()
 
     def save(self, *args, **kwargs):
-        return super().save(*args, **kwargs)
+        super().save(*args, **kwargs)
+        self.week.set(self.get_related_week_objects())
