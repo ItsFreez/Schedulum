@@ -1,42 +1,44 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}
   Календарь
 {% endblock %}
 {% block content %}
   <div class="container d-flex align-items-center justify-content-center"><h2>Календарь учебного года</h2></div>
   {% for year in years %}
-    {% if year.weeks.all %}
-      <div>
-        <article class="mb-5">
-          <h3>{{ year.title }}</h3>
-          <div class="row">
-            {% for month in months %}
-              {% if month.weeks.all and month.year_id == year.id %}
-                <div class="card" style="width: 40rem;">
-                  <div class="card-body">
-                    <h4 class="card-title">{{ month.title }}</h4>
-                    {% for week in weeks %}
-                      {% if week.month_id == month.id and week.year_id == year.id %}
-                        <div class="row">
-                          <div class="col-3">
-                            <strong>{{ week.title }}</strong>
+    <div>
+      <article class="mb-5">
+        <h3>{{ year.title }}</h3>
+        <div class="row">
+          {% for month in month_list %}
+            {% if month.weeks.all and month.year_id == year.id %}
+              <div class="card" style="width: 40rem; border: 1px solid;">
+                <div class="card-body">
+                  <article class="mb-4">
+                    <h4 class="card-title d-flex align-items-center justify-content-center">{{ month.title }}</h4>
+                  </article>
+                  {% for week in weeks %}
+                    {% if week.month_id == month.id%}
+                      <div class="row" style="height: 50px;">
+                        <button type="button" class="btn btn-outline-dark"><a class="text-decoration-none text-reset" href="{% url 'schedules:days' year.year month.title week.title %}">
+                          <div class="row">
+                            <div class="col-4">
+                              <strong>{{ week.title }}</strong>
+                            </div>
+                            <div class="col-8">
+                              {{ week.start|date:"d E" }} — {{ week.end|date:"d E" }}
+                            </div>
                           </div>
-                          <div class="col-5">
-                            {{ week.start_time|date:"d E" }} — {{ week.end_time|date:"d E" }}
-                          </div>
-                          <div class="col-4">
-                            <a href="{% url 'schedule:days' week.id %}" class="card-link">смотреть расписание</a><br>
-                          </div>
-                        </div>
-                      {% endif %}
-                    {% endfor %}
-                  </div>
+                        </a></button>
+                      </div>
+                    {% endif %}
+                  {% endfor %}
                 </div>
-              {% endif %}
-            {% endfor %}
-          </div>
-        </article>
-      </div>
-    {% endif %}
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </article>
+    </div>
   {% endfor %}
 {% endblock %}

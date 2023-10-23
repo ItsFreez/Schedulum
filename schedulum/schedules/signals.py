@@ -1,8 +1,8 @@
 import datetime as dt
 
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
-from schedules.models import Month, Week
+from schedules.models import Month, Week, Schedule
 
 
 @receiver(post_save, sender=Month, dispatch_uid='unique_signal')
@@ -22,3 +22,8 @@ def create_weeks(sender, instance, created, **kwargs):
                         start=start_week, end=end_week)
             all_weeks.append(week)
         Week.objects.bulk_create(all_weeks)
+
+
+@receiver(pre_delete, sender=Week, dispatch_uid='unique_signal')
+def delete_related_schedules(sender, instance, **kwargs):
+    Schedule.objects.filter(week=instance).delete()
