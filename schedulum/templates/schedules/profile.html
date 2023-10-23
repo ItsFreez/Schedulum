@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}
+  Страница пользователя {{ profile }}
+{% endblock %}
+{% block content %}
+  <h1 class="mb-5 text-center ">Страница пользователя {{ profile }}</h1>
+  <small>
+    <ul class="list-group list-group-horizontal justify-content-center mb-3">
+      <li class="list-group-item text-muted">Имя пользователя: {% if profile.get_full_name %}{{ profile.get_full_name }}{% else %}не указано{% endif %}</li>
+      <li class="list-group-item text-muted">Регистрация: {{ profile.date_joined }}</li>
+      <li class="list-group-item text-muted">Роль: {% if profile.is_staff %}Админ{% else %}Пользователь{% endif %}</li>
+    </ul>
+    <ul class="list-group list-group-horizontal justify-content-center">
+      {% if user.is_authenticated and request.user == profile %}
+      <a class="btn btn-sm text-muted" href="{% url 'schedule:edit_profile' %}">Редактировать профиль</a>
+      <a class="btn btn-sm text-muted" href="{% url 'password_change' %}">Изменить пароль</a>
+      {% endif %}
+    </ul>
+  </small>
+  <br>
+  {% if today_sch or tomorrow_sch %}
+    {% if today_sch %}
+      <h3 class="mb-3 text-center">Расписание на сегодня</h3>
+      <article class="mb-5">
+        <div class="col d-flex justify-content-center">
+          <div class="card" style="width: 40rem;">
+            <div class="card-body">
+              <h5 class="card-title">{{ today_sch.0.date|date:"d E Y" }}</h5>
+              <div class="row">
+                <div class="col-6">
+                  <div><h6>Предметы</h6></div>
+                  <p class="card-text text-break text-wrap"><i>{{ today_sch.0.text|linebreaksbr }}</i><p>
+                </div>
+                <div class="col-6">
+                  <div class="container d-flex align-items-center justify-content-center"><h6>Дополнительные заметки</h6></div>
+                  {% if today_sch.0.addit_text %}
+                    <div class="container d-flex align-items-center justify-content-center">
+                      <p class="card-text text-break text-wrap"><i>{{ today_sch.0.addit_text|linebreaksbr }}</i><p>
+                    </div>
+                  {% else %}
+                    <div class="container d-flex align-items-center justify-content-center">
+                      <p class="text-muted"><i>Нет заметок</i></p>
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+              <div>
+                <p class="text-center">
+                  <a class="btn btn-sm text-muted" href="{% url 'schedule:edit_schedule' today_sch.0.pk %}" role="button">
+                    Редактировать
+                  </a>
+                  <a class="btn btn-sm text-muted" href="{% url 'schedule:delete_schedule' today_sch.0.pk %}" role="button">
+                    Удалить
+                  </a>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+    {% else %}
+      <h3 class="mb-3 text-center">Расписание на сегодня</h3>
+      <article class="mb-5">
+        <div class="col d-flex justify-content-center">
+          <div class="card" style="width: 40rem; height: 4.5rem;">
+            <div class="card-body">
+              <p class="text-muted text-center">
+                <font size="5"><strong>На сегодня расписания нет</strong></font>
+              </p>
+            </div>
+          </div>
+        </div>
+      </article>
+    {% endif %}
+    {% if tomorrow_sch %}
+      <h3 class="mb-3 text-center">Расписание на завтра</h3>
+      <article class="mb-5">
+        <div class="col d-flex justify-content-center">
+          <div class="card" style="width: 40rem;">
+            <div class="card-body">
+              <h5 class="card-title">{{ tomorrow_sch.0.date|date:"d E Y" }}</h5>
+              <div class="row">
+                <div class="col-6">
+                  <div><h6>Предметы</h6></div>
+                  <p class="card-text text-break text-wrap"><i>{{ tomorrow_sch.0.text|linebreaksbr }}</i><p>
+                </div>
+                <div class="col-6">
+                  <div class="container d-flex align-items-center justify-content-center"><h6>Дополнительные заметки</h6></div>
+                  {% if tommorow_sch.0.addit_text %}
+                    <div class="container d-flex align-items-center justify-content-center">
+                      <p class="card-text text-break text-wrap"><i>{{ tomorrow_sch.0.addit_text|linebreaksbr }}</i><p>
+                    </div>
+                  {% else %}
+                    <div class="container d-flex align-items-center justify-content-center">
+                      <p class="text-muted"><i>Нет заметок</i></p>
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+              <div>
+                <p class="text-center">
+                  <a class="btn btn-sm text-muted" href="{% url 'schedule:edit_schedule' tomorrow_sch.0.pk %}" role="button">
+                    Редактировать
+                  </a>
+                  <a class="btn btn-sm text-muted" href="{% url 'schedule:delete_schedule' tomorrow_sch.0.pk %}" role="button">
+                    Удалить
+                  </a>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+    {% else %}
+      <h3 class="mb-3 text-center">Расписание на завтра</h3>
+      <article class="mb-5">
+        <div class="col d-flex justify-content-center">
+          <div class="card" style="width: 40rem; height: 4.5rem;">
+            <div class="card-body">
+              <p class="text-muted text-center">
+                <font size="5"><strong>На завтра расписания нет</strong></font>
+              </p>
+            </div>
+          </div>
+        </div>
+      </article>
+    {% endif %}
+  {% else %}
+    <p class="text-muted text-center">
+      <font size="5"><strong>Расписания на ближайшее время нет</strong></font>
+    </p>
+  {% endif %}
+{% endblock %}

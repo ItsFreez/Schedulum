@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load django_bootstrap5 %}
+{% block title %}
+  {% if '/edit/' in request.path %}
+    Редактирование расписания
+  {% elif "/delete/" in request.path %}
+    Удаление расписания
+  {% else %}
+    Создание расписания
+  {% endif %}
+{% endblock %}
+{% block content %}
+  <div class="col d-flex justify-content-center">
+    <div class="card" style="width: 40rem;">
+      <div class="card-header">
+        {% if '/edit/' in request.path %}
+          Редактирование расписания
+        {% elif "/delete/" in request.path %}
+          Удаление расписания
+        {% else %}
+          Создание расписания
+        {% endif %}
+      </div>
+      <div class="card-body">
+        <form method="post">
+          {% csrf_token %}
+          {% if not '/delete/' in request.path %}
+            {% include "includes/errors.html" %}
+            {% bootstrap_form form %}
+            <button type="submit" class="btn btn-dark">Сохранить</button>
+          {% else %}
+            <article>
+              <div class="col d-flex justify-content-center">
+                <div class="card" style="width: 40rem;">
+                  <div class="card-body">
+                    <h5 class="card-title">{{ schedule.date|date:"d E Y" }}</h5>
+                    <div class="row">
+                      <div class="col-6">
+                        <div><h6>Предметы</h6></div>
+                        <p class="card-text text-break text-wrap"><i>{{ schedule.text|linebreaksbr }}</i><p>
+                      </div>
+                      <div class="col-6">
+                        <div class="container d-flex align-items-center justify-content-center"><h6>Дополнительные заметки</h6></div>
+                        {% if schedule.addit_text %}
+                          <div class="container d-flex align-items-center justify-content-center">
+                            <p class="card-text text-break text-wrap"><i>{{ schedule.addit_text|linebreaksbr }}</i><p>
+                          </div>
+                        {% else %}
+                          <div class="container d-flex align-items-center justify-content-center">
+                            <p class="text-muted"><i>Нет заметок</i></p>
+                          </div>
+                        {% endif %}
+                      </div>
+                    </div>
+                    <button type="submit" class="btn btn-dark">Удалить</button>
+                  </div>
+                </div>
+              </div>
+            <article>
+          {% endif %}
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}

@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}
+  Календарь
+{% endblock %}
+{% block content %}
+  <div class="container d-flex align-items-center justify-content-center"><h2>Календарь учебного года</h2></div>
+  {% for year in years %}
+    {% if year.weeks.all %}
+      <div>
+        <article class="mb-5">
+          <h3>{{ year.title }}</h3>
+          <div class="row">
+            {% for month in months %}
+              {% if month.weeks.all and month.year_id == year.id %}
+                <div class="card" style="width: 40rem;">
+                  <div class="card-body">
+                    <h4 class="card-title">{{ month.title }}</h4>
+                    {% for week in weeks %}
+                      {% if week.month_id == month.id and week.year_id == year.id %}
+                        <div class="row">
+                          <div class="col-3">
+                            <strong>{{ week.title }}</strong>
+                          </div>
+                          <div class="col-5">
+                            {{ week.start_time|date:"d E" }} — {{ week.end_time|date:"d E" }}
+                          </div>
+                          <div class="col-4">
+                            <a href="{% url 'schedule:days' week.id %}" class="card-link">смотреть расписание</a><br>
+                          </div>
+                        </div>
+                      {% endif %}
+                    {% endfor %}
+                  </div>
+                </div>
+              {% endif %}
+            {% endfor %}
+          </div>
+        </article>
+      </div>
+    {% endif %}
+  {% endfor %}
+{% endblock %}

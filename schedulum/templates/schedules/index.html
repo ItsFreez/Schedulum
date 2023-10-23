@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}
+  Главная страница
+{% endblock %}
+{% block content %}
+  {% if user.is_authenticated %}
+    <article class="mb-5">
+      <div class="container d-flex align-items-center justify-content-center">
+        <h1>Добрый день, {{ user.username }}!</h1>
+      </div>
+    </article>
+    <article class="mb-5">
+      <div class="container d-flex align-items-center justify-content-center">
+        <h4>Для создания расписания перейдите на вкладку "Создать расписание".</h4>
+      </div>
+    </article>
+    <article class="mb-5">
+      <div class="container d-flex align-items-center justify-content-center">
+        <h4>Для просмотра расписания перейдите на вкладку "Календарь".</h4>
+      </div>
+    </article>
+    <article class="mb-5">
+      <div class="container d-flex align-items-center justify-content-center">
+        <h4>Для просмотра расписания на ближайшее время перейдите на страницу своего аккаунта.</h4>
+      </div>
+    </article>
+  {% else %}
+    <article class="mb-5">
+      <div class="container d-flex align-items-center justify-content-center">
+        <h1>Добро пожаловать в проект Расписаниум!</h1>
+      </div>
+    </article>
+    <article class="mb-5">
+      <div class="container d-flex align-items-center justify-content-center">
+        <h4>Для начала работы зарегистрируйтесь или войдите в свой аккаунт.</h4>
+      </div>
+    </article>
+  {% endif %}
+{% endblock %}

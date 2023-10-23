@@ -1,0 +1,44 @@
+{% load static %}
+<header>
+  <nav class="navbar navbar-light" style="background-color: darkorange">
+    <div class="container">
+      <a class="navbar-brand" href="{% url 'schedules:index' %}">
+        <img src="{% static 'img/logo.png' %}" width="30" height="30" class="d-inline-block align-top" alt="">
+        Расписаниум
+      </a>
+      {% with request.resolver_match.view_name as view_name %}
+        <ul class="nav  nav-pills">
+          {% if user.is_authenticated %}
+            <li class="nav-item">
+              <button type="button" class="{% if view_name == 'schedules:create' %} btn btn-dark {% else %} btn btn-outline-dark {% endif %}">
+                <a class="text-decoration-none text-reset" href="{%  url 'schedules:create' %}">
+                  Создать расписание
+                </a>
+              </button>
+            </li>
+            <li class="nav-item px-4">
+              <button type="button" class="{% if view_name == 'schedules:calendar' %} btn btn-dark {% else %} btn btn-outline-dark {% endif %}">
+                <a class="text-decoration-none text-reset" href="{% url 'schedules:calendar' %}">
+                  Календарь
+                </a>
+              </button>
+            </li>
+            <div class="btn-group" role="group" aria-label="Basic outlined example">
+              <button type="button" class="btn btn-outline-dark"><a class="text-decoration-none text-reset"
+                href="{% url 'schedules:profile'%}">{{ user.username }}</a></button>
+              <button type="button" class="btn btn-outline-dark"><a class="text-decoration-none text-reset"
+                href="{% url 'logout' %}">Выйти</a></button>
+            </div>
+          {% else %}
+            <div class="btn-group" role="group" aria-label="Basic outlined example">
+              <button type="button" class="btn btn-outline-dark"><a class="text-decoration-none text-reset"
+                  href="{% url 'login' %}">Войти</a></button>
+              <button type="button" class="btn btn-outline-dark"><a class="text-decoration-none text-reset"
+                  href="{% url 'sign_up' %}">Регистрация</a></button>
+            </div>
+          {% endif %}
+        </ul>
+      {% endwith %}
+    </div>
+  </nav>
+</header>
