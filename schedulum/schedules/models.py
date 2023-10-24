@@ -10,8 +10,7 @@ from schedules.mixins import (
     MonthMixin, ValidationMonthAndWeekIntervalMixin,
     ScheduleMixin, WeekMixin
 )
-from schedules.validators import (correct_end, correct_start,
-                                  validate_sunday)
+from schedules.validators import correct_end, correct_start
 
 locale.setlocale(category=locale.LC_ALL, locale="Russian")
 User = get_user_model()
@@ -195,7 +194,6 @@ class Schedule(ScheduleMixin, models.Model):
         help_text='Необязательное. Можно написать заметки для себя.'
     )
     date = models.DateField(
-        validators=[validate_sunday],
         verbose_name='Дата',
         help_text='Обязательное. Выберите дату для расписания.'
     )
@@ -215,6 +213,7 @@ class Schedule(ScheduleMixin, models.Model):
     )
     author = models.ForeignKey(
         User,
+        blank=True,
         on_delete=models.CASCADE,
         verbose_name='Автор расписания',
         help_text='Обязательное. Выберите автора.'
@@ -244,6 +243,7 @@ class Schedule(ScheduleMixin, models.Model):
 
     def clean(self):
         super().clean_fields()
+        self.validate_sunday()
         self.validate_empty_repetition()
         self.validate_exist_weeks()
         self.validate_exist_schedule()

@@ -137,6 +137,11 @@ class ScheduleMixin(GetModel):
                                   'расписание на несуществующую неделю.')
         return None
 
+    def validate_sunday(self):
+        if self.date.weekday() == 6:
+            raise ValidationError('Воскресенье неучебный день.')
+        return None
+
 
 class WeekMixin(GetModel, TrueDiffInterval):
 

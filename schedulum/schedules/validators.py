@@ -28,9 +28,3 @@ def correct_end(date):
     if date.weekday() != 6:
         raise ValidationError('Промежуток должен заканчиваться в воскресенье.')
     return date
-
-
-def validate_sunday(date):
-    if date.weekday() == 6:
-        raise ValidationError('Воскресенье неучебный день.')
-    return date
