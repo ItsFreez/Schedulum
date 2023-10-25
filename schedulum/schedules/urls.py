@@ -10,7 +10,7 @@ schedules_urls = [
     path('create/', ScheduleCreateView.as_view(), name='create'),
     path('<slug:date>/edit/', ScheduleUpdateView.as_view(), name='edit'),
     path('<slug:date>/delete/', ScheduleDeleteView.as_view(), name='delete'),
-    path('<int:year>/<str:month_title>/<week_title>/',
+    path('<int:year>/<str:month_titl>/<str:week_title>/',
          DayListView.as_view(),
          name='days')
 ]

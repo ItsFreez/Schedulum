@@ -15,20 +15,17 @@
   </small>
   <br>
   {% for schedule, date, title in object_list %}
-    <h4 class="mb-3 text-center">{{ title }} - {{ date }}</h3>
     <article class="mb-5">
       <div class="col d-flex justify-content-center">
         <div class="card" style="width: 40rem; border: 1px solid;">
           <div class="card-body">
+            <h4 class="mb-3 text-center">{{ title }} - {{ date }}</h4>
             {% if schedule == None %}
               <p class="text-muted text-center">
                 <font size="5"><strong>Расписания нет</strong></font>
               </p>
             {% else %}
-              <div class="row">
-                {% include "includes/schedule.html" %}
-              </div>
-              {% include "includes/edit_delete_buttons.html" %}
+              {% include "includes/schedule.html" %}
             {% endif %}
           </div>
         </div>

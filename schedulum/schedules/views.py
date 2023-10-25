@@ -53,8 +53,30 @@ class CalendarView(LoginRequiredMixin, ListView):
         return context
 
 
-class DayListView(ListView):
-    pass
+class DayListView(LoginRequiredMixin, ListView):
+    template_name = 'schedules/daylist.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        self.user = get_object_or_404(User, username=request.user)
+        year = get_object_or_404(Year, year=kwargs['year'])
+        month = get_object_or_404(Month, title=kwargs['month_titl'], year=year)
+        week_title = kwargs['week_title']
+        week_title = week_title.replace('%20', ' ')
+        self.week = get_object_or_404(Week, title=week_title, month=month)
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_queryset(self):
+        schedules = []
+        for number in range(7):
+            date = self.week.start + datetime.timedelta(days=number)
+            schedule = Schedule.objects.filter(
+                date__week_day=date.weekday() + 2,
+                author=self.user,
+                week=self.week
+            ).first()
+            date_schedule_tuple = (date, schedule)
+            schedules.append(date_schedule_tuple)
+        return schedules
 
 
 class ScheduleCreateView(LoginRequiredMixin, CreateView):
@@ -82,7 +104,7 @@ class ProfileView(LoginRequiredMixin, ListView):
 
     def get_queryset(self):
         self.user = get_object_or_404(User, username=self.request.user)
-        self.schedules = []
+        schedules = []
         for day, title in ((CURRENT_DAY, 'Сегодня'), (NEXT_DAY, 'Завтра')):
             week = Week.objects.filter(
                 start__lte=day,
@@ -94,8 +116,8 @@ class ProfileView(LoginRequiredMixin, ListView):
                 week=week,
             ).first()
             schedule_date_tuple = (schedule, day, title)
-            self.schedules.append(schedule_date_tuple)
-        return self.schedules
+            schedules.append(schedule_date_tuple)
+        return schedules
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

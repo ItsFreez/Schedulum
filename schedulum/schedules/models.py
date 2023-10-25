@@ -186,7 +186,7 @@ class Schedule(ScheduleMixin, models.Model):
         verbose_name='Расписание пар',
         help_text='Обязательное. Укажите время, название и аудиторию пары.'
     )
-    additionally_text = models.TextField(
+    notes = models.TextField(
         max_length=500,
         blank=True,
         null=True,

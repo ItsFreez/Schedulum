@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% load filter_extras %}
 {% block title %}
   Расписание по дням
 {% endblock %}
@@ -7,62 +6,23 @@
   <article class="mb-3">
     <div class="container d-flex align-items-center justify-content-center"><h2>Расписание по дням</h2></div>
   </article>
-  {% for day in days %}
+  {% for date, schedule in object_list %}
     <article class="mb-5">
       <div class="col d-flex justify-content-center">
-        <div class="card" style="width: 40rem;">
+        <div class="card" style="width: 40rem; border: 1px solid;">
           <div class="card-body">
-            <h3 class="card-title">{{ day.title }}</h3>
-            {% if day.numday == 6 %}
-              <div class="container d-flex align-items-center justify-content-center">
-                <p class="text-muted"><strong>Заслуженный отдых! :)</strong></p>
-              </div>
+            <h4 class="card-title">{{ date|date:"l" }}</h4>
+            <h5>{{ date|date:"d E" }}</h5>
+            {% if forloop.last %}
+              <p class="text-muted text-center">
+                <font size="5"><strong>Заслуженный отдых!</strong></font>
+              </p>
+            {% elif schedule == None %}
+              <p class="text-muted text-center">
+                <font size="5"><strong>Расписания нет</strong></font>
+              </p>
             {% else %}
-              {% if schedules %}
-                {% define True as continue %}
-                {% for schedule in schedules %}
-                  {% if schedule.numday == day.numday and continue %}
-                    <h5>{{ schedule.date|date:"d E" }}</h5>
-                    <div class="row mb-2">
-                      <div class="col-6">
-                        <div><h6>Предметы</h6></div>
-                        <p class="card-text text-break text-wrap"><i>{{ schedule.text|linebreaksbr }}</i><p>
-                      </div>
-                      <div class="col-6">
-                        <div class="container d-flex align-items-center justify-content-center"><h6>Дополнительные заметки</h6></div>
-                        {% if schedule.addit_text %}
-                          <div class="container d-flex align-items-center justify-content-center">
-                            <p class="card-text text-break text-wrap"><i>{{ schedule.addit_text|linebreaksbr }}</i><p>
-                          </div>
-                        {% else %}
-                          <div class="container d-flex align-items-center justify-content-center">
-                            <p class="text-muted"><i>Нет заметок</i></p>
-                          </div>
-                        {% endif %}
-                      </div>
-                    </div>
-                    <div>
-                      <p class="text-center">
-                        <a class="btn btn-sm text-muted" href="{% url 'schedule:edit_schedule' schedule.pk %}" role="button">
-                          Редактировать
-                        </a>
-                        <a class="btn btn-sm text-muted" href="{% url 'schedule:delete_schedule' schedule.pk %}" role="button">
-                          Удалить
-                        </a>
-                      </p>
-                    </div>
-                    {% define False as continue %}
-                  {% elif forloop.last and continue %}
-                    <div class="container d-flex align-items-center justify-content-center">
-                      <p class="text-muted"><strong>Расписания нет</strong></p>
-                    </div>
-                  {% endif %}
-                {% endfor %}
-              {% else %}
-                <div class="container d-flex align-items-center justify-content-center">
-                    <p class="text-muted"><strong>Расписания нет</strong></p>
-                </div>
-              {% endif %}
+              {% include "includes/schedule.html" %}
             {% endif %}
           </div>
         </div>

@@ -40,9 +40,9 @@
                       </div>
                       <div class="col-6">
                         <div class="container d-flex align-items-center justify-content-center"><h6>Дополнительные заметки</h6></div>
-                        {% if schedule.addit_text %}
+                        {% if schedule.notes %}
                           <div class="container d-flex align-items-center justify-content-center">
-                            <p class="card-text text-break text-wrap"><i>{{ schedule.addit_text|linebreaksbr }}</i><p>
+                            <p class="card-text text-break text-wrap"><i>{{ schedule.notes|linebreaksbr }}</i><p>
                           </div>
                         {% else %}
                           <div class="container d-flex align-items-center justify-content-center">
