@@ -18,7 +18,7 @@
     <h4 class="mb-3 text-center">{{ title }} - {{ date }}</h3>
     <article class="mb-5">
       <div class="col d-flex justify-content-center">
-        <div class="card" style="width: 40rem;">
+        <div class="card" style="width: 40rem; border: 1px solid;">
           <div class="card-body">
             {% if schedule == None %}
               <p class="text-muted text-center">
@@ -27,7 +27,7 @@
             {% else %}
               <div class="row">
                 <div class="col-6">
-                  <div><h6>Предметы</h6></div>
+                  <div class="container d-flex align-items-center justify-content-center"><h6>Предметы</h6></div>
                   <p class="card-text text-break text-wrap"><i>{{ schedule.text|linebreaksbr }}</i><p>
                 </div>
                 <div class="col-6">
@@ -42,6 +42,16 @@
                     </div>
                   {% endif %}
                 </div>
+              </div>
+              <div>
+                <p class="text-center">
+                  <a class="btn btn-sm text-muted" href={% url 'schedules:edit' schedule.date %} role="button">
+                    Редактировать
+                  </a>
+                  <a class="btn btn-sm text-muted" href={% url 'schedules:delete' schedule.date %} role="button">
+                    Удалить
+                  </a>
+                </p>
               </div>
             {% endif %}
           </div>

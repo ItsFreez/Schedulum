@@ -27,3 +27,10 @@ class ScheduleCreationForm(forms.ModelForm):
 
     def clean_author(self):
         return self.author
+
+
+class ScheduleEditForm(forms.ModelForm):
+
+    class Meta:
+        model = Schedule
+        exclude = ('author', 'date', 'week')

@@ -1,14 +1,35 @@
 import datetime
 
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404
-from django.views.generic import CreateView, ListView, TemplateView
+from django.views.generic import (CreateView, DeleteView, ListView,
+                                  TemplateView, UpdateView)
 from django.urls import reverse_lazy
 
-from schedules.forms import ScheduleCreationForm
+from schedules.forms import ScheduleCreationForm, ScheduleEditForm
 from schedules.models import Month, Year, Week, Schedule, User
 
 CURRENT_DAY = datetime.date.today()
 NEXT_DAY = CURRENT_DAY + datetime.timedelta(days=1)
+
+
+class ScheduleChangeMixin(LoginRequiredMixin):
+    model = Schedule
+    slug_url_kwarg = 'date'
+    template_name = 'schedules/schedule_form.html'
+    success_url = reverse_lazy('schedules:calendar')
+
+    def dispatch(self, request, *args, **kwargs):
+        self.user = get_object_or_404(User, username=request.user)
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_object(self, queryset=None):
+        if queryset is None:
+            queryset = self.get_queryset()
+        date_str = self.kwargs.get(self.slug_url_kwarg)
+        date = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
+        obj = get_object_or_404(Schedule, date=date, author=self.user)
+        return obj
 
 
 class IndexView(TemplateView):
@@ -16,7 +37,7 @@ class IndexView(TemplateView):
     template_name = 'schedules/index.html'
 
 
-class CalendarView(ListView):
+class CalendarView(LoginRequiredMixin, ListView):
     model = Month
     template_name = 'schedules/calendar.html'
 
@@ -36,10 +57,10 @@ class DayListView(ListView):
     pass
 
 
-class ScheduleCreate(CreateView):
+class ScheduleCreateView(LoginRequiredMixin, CreateView):
     model = Schedule
     form_class = ScheduleCreationForm
-    template_name = 'schedules/create_form.html'
+    template_name = 'schedules/schedule_form.html'
     success_url = reverse_lazy('schedules:calendar')
 
     def get_form_kwargs(self):
@@ -48,7 +69,15 @@ class ScheduleCreate(CreateView):
         return kwargs
 
 
-class ProfileView(ListView):
+class ScheduleUpdateView(ScheduleChangeMixin, UpdateView):
+    form_class = ScheduleEditForm
+
+
+class ScheduleDeleteView(ScheduleChangeMixin, DeleteView):
+    pass
+
+
+class ProfileView(LoginRequiredMixin, ListView):
     template_name = 'schedules/profile.html'
 
     def get_queryset(self):
