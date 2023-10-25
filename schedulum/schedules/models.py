@@ -1,6 +1,5 @@
 import locale
 
-from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -44,6 +43,8 @@ class Year(models.Model):
     year = models.SmallIntegerField(
         validators=[MinValueValidator(settings.CURRENT_YEAR),
                     MaxValueValidator(settings.NEXT_YEAR)],
+        unique=True,
+        error_messages={'unique': 'Такой год уже существует.'},
         verbose_name='Год',
         help_text=(
             'Можно указать только текущий и следующий год. Обязательное поле.'
@@ -57,11 +58,6 @@ class Year(models.Model):
 
     def __str__(self):
         return self.title
-
-    def clean(self):
-        if Year.objects.filter(year=self.year).first() is not None:
-            raise ValidationError('Такой год уже существует.')
-        return super().clean()
 
     def save(self, *args, **kwargs):
         self.title = str(self.year) + ' год'
