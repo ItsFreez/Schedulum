@@ -38,8 +38,8 @@ class Year(models.Model):
     title = models.CharField(
         max_length=15,
         blank=True,
+        editable=False,
         verbose_name='Заголовок',
-        help_text='Это поле автоматически заполнится, оставьте пустым.'
     )
     year = models.SmallIntegerField(
         validators=[MinValueValidator(settings.CURRENT_YEAR),
@@ -72,16 +72,16 @@ class Month(MonthMixin, ValidationMonthAndWeekIntervalMixin, models.Model):
     title = models.CharField(
         max_length=10,
         blank=True,
+        editable=False,
         verbose_name='Заголовок',
-        help_text='Это поле автоматически заполнится, оставьте пустым.'
     )
     year = models.ForeignKey(
         Year,
         blank=True,
+        editable=False,
         on_delete=models.CASCADE,
         verbose_name='Год',
         related_name='months',
-        help_text='Это поле автоматически заполнится, оставьте пустым.'
     )
     start = models.DateField(
         validators=[correct_start],
@@ -119,6 +119,9 @@ class Month(MonthMixin, ValidationMonthAndWeekIntervalMixin, models.Model):
         self.validate_len_interval()
         return super().clean()
 
+    def clean_fields(self, exclude):
+        return None
+
     def save(self, *args, **kwargs):
         self.year = self.get_related_obj()
         self.title = self.get_average_date().strftime('%B')
@@ -134,10 +137,10 @@ class Week(ValidationMonthAndWeekIntervalMixin, WeekMixin, models.Model):
     month = models.ForeignKey(
         Month,
         blank=True,
+        editable=False,
         on_delete=models.CASCADE,
         verbose_name='Месяц',
         related_name='weeks',
-        help_text='Это поле автоматически заполнится, оставьте пустым.'
     )
     start = models.DateField(
         validators=[correct_start],
@@ -174,6 +177,9 @@ class Week(ValidationMonthAndWeekIntervalMixin, WeekMixin, models.Model):
         self.validate_interval()
         self.validate_len_interval()
         return super().clean()
+
+    def clean_fields(self, exclude):
+        return None
 
     def save(self, *args, **kwargs):
         self.month = self.get_related_obj()
