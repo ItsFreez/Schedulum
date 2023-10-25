@@ -1,0 +1,10 @@
+<div>
+  <p class="text-center">
+    <a class="btn btn-sm text-muted" href={% url 'schedules:edit' schedule.date %} role="button">
+      Редактировать
+    </a>
+    <a class="btn btn-sm text-muted" href={% url 'schedules:delete' schedule.date %} role="button">
+      Удалить
+    </a>
+  </p>
+</div>
