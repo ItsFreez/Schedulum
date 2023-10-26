@@ -1,13 +1,18 @@
-import datetime as dt
+import datetime
+import os
 from pathlib import Path
+
+from dotenv import load_dotenv
+
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-3j+(281vuc(f*)tyx#y9kjcellmi62%pez76cw@#&&22&*+%=='
+SECRET_KEY = os.getenv('SECRET_KEY')
 
-DEBUG = True
+DEBUG = (os.getenv('DEBUG', 'False') == 'True')
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS').split(',')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -74,6 +79,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+CSRF_FAILURE_VIEW = 'schedules.views.csrf_failure'
+
 EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
 
 EMAIL_FILE_PATH = BASE_DIR / 'sent_emails'
@@ -100,19 +107,19 @@ STATICFILES_DIRS = [
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CURRENT_MONTH = dt.date.today().month
+CURRENT_MONTH = datetime.date.today().month
 
-CURRENT_YEAR = dt.date.today().year
+CURRENT_YEAR = datetime.date.today().year
 
-NEXT_YEAR = dt.date.today().year + 1
+NEXT_YEAR = datetime.date.today().year + 1
 
 VALIDATE_DATES = {
-    'CURRENT_AUGUST': dt.date(year=CURRENT_YEAR, month=8, day=29),
-    'CURRENT_END_AUGUST': dt.date(year=CURRENT_YEAR, month=8, day=31),
-    'NEXT_AUGUST': dt.date(year=NEXT_YEAR, month=8, day=29),
-    'NEXT_END_AUGUST': dt.date(year=NEXT_YEAR, month=8, day=31),
-    'CURRENT_JULY': dt.date(year=CURRENT_YEAR, month=7, day=1),
-    'CURRENT_START_JULY': dt.date(year=CURRENT_YEAR, month=7, day=6),
-    'NEXT_JULY': dt.date(year=NEXT_YEAR, month=7, day=1),
-    'NEXT_START_JULY': dt.date(year=NEXT_YEAR, month=7, day=6)
+    'CURRENT_AUGUST': datetime.date(year=CURRENT_YEAR, month=8, day=29),
+    'CURRENT_END_AUGUST': datetime.date(year=CURRENT_YEAR, month=8, day=31),
+    'NEXT_AUGUST': datetime.date(year=NEXT_YEAR, month=8, day=29),
+    'NEXT_END_AUGUST': datetime.date(year=NEXT_YEAR, month=8, day=31),
+    'CURRENT_JULY': datetime.date(year=CURRENT_YEAR, month=7, day=1),
+    'CURRENT_START_JULY': datetime.date(year=CURRENT_YEAR, month=7, day=6),
+    'NEXT_JULY': datetime.date(year=NEXT_YEAR, month=7, day=1),
+    'NEXT_START_JULY': datetime.date(year=NEXT_YEAR, month=7, day=6)
 }
