@@ -10,6 +10,10 @@ INVALID_PAST_ERROR = 'Август и Июль неучебные месяцы.'
 
 
 def correct_start(date):
+    """
+    Валидатор для проверки начала промежутка: запрещены Июль и Август,
+    прошлый месяц. Можно выбрать только понедельник.
+    """
     correct_month = dt.date(year=CURRENT_YEAR, month=CURRENT_MONTH, day=1)
     if date < correct_month:
         raise ValidationError('Прошедший месяц не доступен для выбора.')
@@ -22,6 +26,10 @@ def correct_start(date):
 
 
 def correct_end(date):
+    """
+    Валидатор для проверки конца промежутка: запрещены Июль и Август,
+    прошлый месяц. Можно выбрать только воскресенье.
+    """
     if (DATES['CURRENT_START_JULY'] < date < DATES['CURRENT_END_AUGUST']
             or DATES['NEXT_START_JULY'] < date < DATES['NEXT_END_AUGUST']):
         raise ValidationError(INVALID_PAST_ERROR)

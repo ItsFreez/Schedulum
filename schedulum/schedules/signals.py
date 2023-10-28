@@ -7,6 +7,7 @@ from schedules.models import Month, Week, Schedule
 
 @receiver(post_save, sender=Month, dispatch_uid='unique_signal')
 def create_weeks(sender, instance, created, **kwargs):
+    """Сигнал для автоматического создания объектов Week при создании Month."""
     if created:
         difference = instance.end - instance.start
         count_weeks = (difference.days + 1) // 7
@@ -26,4 +27,5 @@ def create_weeks(sender, instance, created, **kwargs):
 
 @receiver(pre_delete, sender=Week, dispatch_uid='unique_signal')
 def delete_related_schedules(sender, instance, **kwargs):
+    """Сигнал для удаления всех объектов Schedule, связанных с Week."""
     Schedule.objects.filter(week=instance).delete()

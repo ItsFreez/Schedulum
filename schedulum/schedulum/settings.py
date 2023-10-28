@@ -107,6 +107,8 @@ STATICFILES_DIRS = [
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+# Даты для валидации значений в поле "date" у моделей.
+
 CURRENT_MONTH = datetime.date.today().month
 
 CURRENT_YEAR = datetime.date.today().year

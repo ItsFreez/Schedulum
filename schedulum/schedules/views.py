@@ -29,6 +29,11 @@ def server_error(request):
 
 
 class ScheduleChangeMixin(LoginRequiredMixin):
+    """
+    Миксин для обновления и удаления объектов Schedule -
+    вовзращает объект, исходя из полей author и date или ошибку 404.
+    """
+
     model = Schedule
     slug_url_kwarg = 'date'
     template_name = 'schedules/schedule_form.html'
@@ -48,11 +53,17 @@ class ScheduleChangeMixin(LoginRequiredMixin):
 
 
 class IndexView(TemplateView):
-    model = Month
+    """View для стартовой страницы сервиса."""
+
     template_name = 'schedules/index.html'
 
 
 class CalendarView(LoginRequiredMixin, ListView):
+    """
+    View для страницы календаря - передает в template все объекты
+    Year, Month и Week.
+    """
+
     model = Month
     template_name = 'schedules/calendar.html'
 
@@ -69,6 +80,11 @@ class CalendarView(LoginRequiredMixin, ListView):
 
 
 class DayListView(LoginRequiredMixin, ListView):
+    """
+    View для страницы расписания на неделю - передает в template все объекты
+    Schedule, исходя из года, месяца, недели и автора.
+    """
+
     template_name = 'schedules/daylist.html'
 
     def dispatch(self, request, *args, **kwargs):
@@ -95,6 +111,8 @@ class DayListView(LoginRequiredMixin, ListView):
 
 
 class ScheduleCreateView(LoginRequiredMixin, CreateView):
+    """View для формы создания расписания."""
+
     model = Schedule
     form_class = ScheduleCreationForm
     template_name = 'schedules/schedule_form.html'
@@ -107,14 +125,23 @@ class ScheduleCreateView(LoginRequiredMixin, CreateView):
 
 
 class ScheduleUpdateView(ScheduleChangeMixin, UpdateView):
+    """View для формы редактирования расписания."""
+
     form_class = ScheduleEditForm
 
 
 class ScheduleDeleteView(ScheduleChangeMixin, DeleteView):
+    """View для удаления расписания."""
+
     pass
 
 
 class ProfileView(LoginRequiredMixin, ListView):
+    """
+    View для профиля пользователя - передает в template объект
+    пользователя и объекты расписания на сегодня и завтра.
+    """
+
     template_name = 'schedules/profile.html'
 
     def get_queryset(self):

@@ -5,6 +5,7 @@ from schedules.models import User, Schedule
 
 
 class CustomUserCreationForm(UserCreationForm):
+    """Форма регистрации для пользователя."""
 
     class Meta:
         model = User
@@ -12,6 +13,7 @@ class CustomUserCreationForm(UserCreationForm):
 
 
 class ScheduleCreationForm(forms.ModelForm):
+    """Форма для создрания расписания. Автор присваивается автоматически."""
 
     class Meta:
         model = Schedule
@@ -30,6 +32,7 @@ class ScheduleCreationForm(forms.ModelForm):
 
 
 class ScheduleEditForm(forms.ModelForm):
+    """Форма для редактирования расписания."""
 
     class Meta:
         model = Schedule
