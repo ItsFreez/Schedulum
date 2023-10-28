@@ -10,6 +10,7 @@ handler500 = 'schedules.views.server_error'
 urlpatterns = [
     path('', include('schedules.urls', namespace='schedules')),
     path('admin/', admin.site.urls),
+    path('api/', include('api.urls')),
     path('auth/', include('django.contrib.auth.urls')),
     path('auth/signup/',
          CreateView.as_view(
