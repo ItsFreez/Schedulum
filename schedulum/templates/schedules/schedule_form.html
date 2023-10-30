@@ -3,7 +3,7 @@
 {% block title %}
   {% if '/edit/' in request.path %}
     Редактирование расписания
-  {% elif "/delete/" in request.path %}
+  {% elif '/delete/' in request.path %}
     Удаление расписания
   {% else %}
     Создание расписания
@@ -15,7 +15,7 @@
       <div class="card-header">
         {% if '/edit/' in request.path %}
           Редактирование расписания
-        {% elif "/delete/" in request.path %}
+        {% elif '/delete/' in request.path %}
           Удаление расписания
         {% else %}
           Создание расписания

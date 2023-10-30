@@ -13,7 +13,7 @@ class CustomUserCreationForm(UserCreationForm):
 
 
 class ScheduleCreationForm(forms.ModelForm):
-    """Форма для создрания расписания. Автор присваивается автоматически."""
+    """Форма для создрания расписания."""
 
     class Meta:
         model = Schedule
@@ -24,10 +24,12 @@ class ScheduleCreationForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        """Получение объекта пользователя из View."""
         self.author = kwargs.pop('author')
         return super().__init__(*args, **kwargs)
 
     def clean_author(self):
+        """Присваивание объекта пользователя к полю author."""
         return self.author
 
 

@@ -10,6 +10,7 @@ class GetModel():
     """Родительский класс для получения названия модели."""
 
     def get_model(self):
+        """Получение текущей модели."""
         return apps.get_model(app_label='schedules',
                               model_name=self.__class__.__name__)
 
@@ -18,33 +19,31 @@ class TrueDiffInterval():
     """Родительский класс для получения правильного количества дней."""
 
     def get_true_diff(self):
+        """Рассчет правильного количества дней в интервале."""
         difference = self.end - self.start
         return difference.days + 1
 
 
 class MonthMixin(GetModel, TrueDiffInterval):
-    """
-    Миксин для модели Month. Выполняет следующие функции:
-    1. Получение средней даты между началом и концом промежутка;
-    2. Получение related модели из поля foreignkey;
-    3. Получение объекта related модели по полю year;
-    4. Проверка существования related модели для поля year;
-    5. Проверка интервала полей start и end на количество дней.
-    """
+    """Миксин для модели Month."""
 
     def get_average_date(self):
+        """Получение даты в середине месяца."""
         return self.start + datetime.timedelta(days=15)
 
     def get_related_model(self):
+        """Получение related модели из поля foreignkey."""
         model = self.get_model()
         return model._meta.get_field('year').related_model
 
     def get_related_obj(self):
+        """Получение объекта related модели по полю year."""
         model = self.get_related_model()
         average_date = self.get_average_date()
         return model.objects.filter(year=average_date.year).first()
 
     def validate_related_obj(self):
+        """Проверка наличия необходимого объекта related модели."""
         related_model_obj = self.get_related_obj()
         field = self.get_related_model()._meta.verbose_name.title()
         if related_model_obj is None:
@@ -52,6 +51,7 @@ class MonthMixin(GetModel, TrueDiffInterval):
         return None
 
     def validate_len_interval(self):
+        """Проверка интервала полей start и end."""
         true_diff = self.get_true_diff()
         count_weeks = true_diff // 7
         if true_diff % 7 != 0:
@@ -63,18 +63,16 @@ class MonthMixin(GetModel, TrueDiffInterval):
 
 
 class ValidationMonthAndWeekIntervalMixin(GetModel):
-    """
-    Миксин для моделей Month и Week. Выполняет следующие функции:
-    1. Проверка попадания полей start и end в интервал другого объекта;
-    2. Проверка поля end: "end" должно быть больше "start".
-    """
+    """Миксин для моделей Month и Week."""
 
     def validate_interval(self):
+        """Запуск всех валидирующих методов."""
         self.validate_incorrect_interval()
         self.validate_exist_interval()
         return None
 
     def validate_exist_interval(self):
+        """Проверка попадания start или end в интервал другого объекта."""
         error_sample = 'Значение "{field}" попадает в другой интервал.'
         model = self.get_model()
         start_obj = model.objects.filter(start__lt=self.start,
@@ -92,6 +90,7 @@ class ValidationMonthAndWeekIntervalMixin(GetModel):
         return None
 
     def validate_incorrect_interval(self):
+        """Проверка корректности интервала: start < end."""
         if self.start >= self.end:
             raise ValidationError(
                 'Конец интервала должен быть позже его начала.'
@@ -100,27 +99,23 @@ class ValidationMonthAndWeekIntervalMixin(GetModel):
 
 
 class ScheduleMixin(GetModel):
-    """
-    Миксин для модели Schedule. Выполняет следующие функции:
-    1. Получение related модели из поля manytomany;
-    2. Получение объекта related модели по полям start и end;
-    3. Получение списка всех объектов related модели исходя из
-    количества повторений, указанных в полях count и rate;
-    4. Проверка, что указаны оба поля count и rate, или оба пусты;
-    5. Проверка попадания даты или повтора в даты другого объекта;
-    6. Проверка существования объекта related модели;
-    7. Проверка попадания даты на воскресенье.
-    """
+    """Миксин для модели Schedule."""
 
     def get_related_model(self):
+        """Получение related модели из поля foreignkey."""
         model = self.get_model()
         return model._meta.get_field('week').related_model
 
     def get_related_obj(self, date):
+        """Получение объекта related модели по полям start и end."""
         model = self.get_related_model()
         return model.objects.filter(start__lte=date, end__gte=date).first()
 
     def get_related_week_objects(self):
+        """
+        Получение списка всех объектов Week, указанных при помощи даты
+        и повторений.
+        """
         week_objects = []
         if self.repetition_rate and self.repetition_count:
             for repeat in range(1, self.repetition_count + 1):
@@ -134,6 +129,7 @@ class ScheduleMixin(GetModel):
         return week_objects
 
     def validate_empty_repetition(self):
+        """Проверка на заполнение полей rate и count."""
         repetition_list = [self.repetition_rate, self.repetition_count]
         if any(repetition_list) and not all(repetition_list):
             raise ValidationError('При назначении повторения должны быть '
@@ -141,6 +137,7 @@ class ScheduleMixin(GetModel):
         return None
 
     def validate_exist_schedule(self):
+        """Проверка попадания расписания в даты другого объекта расписания."""
         model = self.get_model()
         current_schedule = model.objects.filter(date=self.date,
                                                 author=self.author).first()
@@ -157,6 +154,7 @@ class ScheduleMixin(GetModel):
         return None
 
     def validate_exist_weeks(self):
+        """Проверка наличия необходимого объекта related модели."""
         week_objs = self.get_related_week_objects()
         if None in week_objs:
             raise ValidationError('Вы пытаетесь добавить или повторить '
@@ -164,30 +162,28 @@ class ScheduleMixin(GetModel):
         return None
 
     def validate_sunday(self):
+        """Проверка попадания даты на воскресенье."""
         if self.date.weekday() == 6:
             raise ValidationError('Воскресенье неучебный день.')
         return None
 
 
 class WeekMixin(GetModel, TrueDiffInterval):
-    """
-    Миксин для модели Week. Выполняет следующие функции:
-    1. Получение related модели из поля foreignkey;
-    2. Получение объекта related модели по полям start и end;
-    3. Проверка существования объекта related модели;
-    4. Проверка на количество дней.
-    """
+    """Миксин для модели Week."""
 
     def get_related_model(self):
+        """Получение related модели из поля foreignkey."""
         model = self.get_model()
         return model._meta.get_field('month').related_model
 
     def get_related_obj(self):
+        """Получение объекта related модели по полям start и end."""
         model = self.get_related_model()
         return model.objects.filter(start__lte=self.start,
                                     end__gte=self.start).first()
 
     def validate_related_obj(self):
+        """Проверка наличия необходимого объекта related модели."""
         related_model_obj = self.get_related_obj()
         field = self.get_related_model()._meta.verbose_name.title()
         if related_model_obj is None:
@@ -195,6 +191,7 @@ class WeekMixin(GetModel, TrueDiffInterval):
         return None
 
     def validate_len_interval(self):
+        """Проверка интервала полей start и end."""
         true_diff = self.get_true_diff()
         if true_diff != 7:
             raise ValidationError('Неделя должна содержать 7 дней.')

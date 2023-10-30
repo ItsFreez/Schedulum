@@ -8,11 +8,14 @@ from schedules.models import Week, Schedule
 
 
 class ScheduleMixinSerializer():
+    """Миксин для сериализатора Schedule."""
 
     def get_related_obj(self, date):
+        """Получение объекта related модели по полям start и end."""
         return Week.objects.filter(start__lte=date, end__gte=date).first()
 
     def exits_schedule(self, date_str, week_objects):
+        """Проверка попадания расписания в даты другого объекта расписания."""
         user = self.context['request'].user
         date = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
         current_schedule = Schedule.objects.filter(
@@ -31,6 +34,10 @@ class ScheduleMixinSerializer():
         return None
 
     def get_related_week_objects(self, date_str, rate=False, count=False):
+        """
+        Получение списка всех объектов Week, указанных при помощи даты
+        и повторений.
+        """
         date = datetime.datetime.strptime(date_str, '%Y-%m-%d').date()
         week_objects = []
         if rate and count:
@@ -45,11 +52,17 @@ class ScheduleMixinSerializer():
         return week_objects
 
     def validate_date(self, value):
+        """Проверка попадания даты на воскресенье."""
         if value.weekday() == 6:
             raise serializers.ValidationError('Воскресенье неучебный день.')
         return value
 
     def validate(self, attrs):
+        """
+        1. Проверка на заполнение полей rate и count;
+        2. Проверка наличия необходимого объекта related модели;
+        3. Запуск проверки попадания расписания в даты другого расписания.
+        """
         date = self.initial_data.get('date')
         if date is None:
             date = self.instance.date
@@ -73,6 +86,8 @@ class ScheduleMixinSerializer():
 
 
 class RegistrationSerializer(serializers.Serializer):
+    """Сериализатор для регистрации пользователя и получения кода."""
+
     username = serializers.CharField(
         required=True,
         max_length=150,
@@ -87,11 +102,15 @@ class RegistrationSerializer(serializers.Serializer):
 
 
 class TokenObtainAccessSerializer(serializers.Serializer):
+    """Сериализатор для получения авторизационного токена."""
+
     username = serializers.CharField(required=True)
     confirmation_code = serializers.CharField(required=True)
 
 
 class ScheduleSerializer(ScheduleMixinSerializer, serializers.ModelSerializer):
+    """Сериализатор для модели Schedule."""
+
     text = serializers.CharField(max_length=500)
     author = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
@@ -107,8 +126,17 @@ class ScheduleSerializer(ScheduleMixinSerializer, serializers.ModelSerializer):
         ]
 
 
+class ScheduleDaySerializer(serializers.ModelSerializer):
+    """Сериализатор для получения расписания на определенный день."""
+
+    class Meta:
+        model = Schedule
+        fields = ('text', 'notes')
+
+
 class ScheduleUpdateSerializer(ScheduleMixinSerializer,
                                serializers.ModelSerializer):
+    """Сериализатор для метода 'UPDATE' модели Schedule."""
 
     class Meta:
         model = Schedule

@@ -35,7 +35,7 @@ COUNT_CHOICES = (
 
 class Year(models.Model):
     """
-    Модель года для администратора. Содержит два поля - заголовок и год:
+    Модель года для администратора.
     1. Заголовок формируется автоматически из указанного значения в поле год;
     2. Установлено ограничение на создание только текущего и следующего года.
     """
@@ -63,23 +63,21 @@ class Year(models.Model):
         ordering = ('year',)
 
     def __str__(self):
+        """Название составляется из заголовка года."""
         return self.title
 
     def save(self, *args, **kwargs):
+        """Сохранение поля заголовока объекта."""
         self.title = str(self.year) + ' год'
         return super().save(*args, **kwargs)
 
 
 class Month(MonthMixin, ValidationMonthAndWeekIntervalMixin, models.Model):
     """
-    Модель месяца для администратора. Содержит четыре поля - заголовок,
-    год (foreignkey), начало и конец учебного месяца:
+    Модель месяца для администратора.
     1. Заголовок и год заполняются автоматически из значений
     начала и конца месяца;
-    2. Установлены ограничения на выбор дат: нельзя создать объект прошлого
-    месяца, Июля или Августа, а также объект, если нет соответствующего объекта
-    модели Year;
-    3. Установлены два Unique Constraint: заголовок и год,
+    2. Установлены два Unique Constraint: заголовок и год,
     начало и конец месяца.
     """
 
@@ -124,9 +122,11 @@ class Month(MonthMixin, ValidationMonthAndWeekIntervalMixin, models.Model):
         )
 
     def __str__(self):
+        """Название объекта составляется из заголовков месяца и года."""
         return f'{self.title} {self.year.title}'
 
     def clean(self):
+        """Запуск всех валидирующих методов."""
         super().clean_fields()
         self.validate_related_obj()
         self.validate_interval()
@@ -134,9 +134,11 @@ class Month(MonthMixin, ValidationMonthAndWeekIntervalMixin, models.Model):
         return super().clean()
 
     def clean_fields(self, exclude):
+        """Отключение метода для избежания дублирования ошибок."""
         return None
 
     def save(self, *args, **kwargs):
+        """Привязка объекта к году, сохранение заголовка и объекта."""
         self.year = self.get_related_obj()
         self.title = self.get_average_date().strftime('%B')
         return super().save(*args, **kwargs)
@@ -144,15 +146,12 @@ class Month(MonthMixin, ValidationMonthAndWeekIntervalMixin, models.Model):
 
 class Week(ValidationMonthAndWeekIntervalMixin, WeekMixin, models.Model):
     """
-    Модель недели для администратора. Содержит четыре поля - заголовок,
-    месяц (foreignkey), начало и конец учебной недели:
+    Модель недели для администратора.
     1. Недели создаются автоматически при создании месяца, но при
     необходимости администратор может редактировать их;
     2. Месяц заполняется автоматически из значений
     начала и конца недели;
-    3. Установлено ограничение на выбор дат: нельзя создать объект недели если
-    нет соответствующего объекта модели Month.
-    4. Установлены два Unique Constraint: заголовок и месяц,
+    3. Установлены два Unique Constraint: заголовок и месяц,
     начало и конец недели.
     """
 
@@ -196,9 +195,11 @@ class Week(ValidationMonthAndWeekIntervalMixin, WeekMixin, models.Model):
         )
 
     def __str__(self):
+        """Название объекта составляется из заголовков недели и месяца."""
         return f'{self.title} {self.month.title}'
 
     def clean(self):
+        """Запуск всех валидирующих методов."""
         super().clean_fields()
         self.validate_related_obj()
         self.validate_interval()
@@ -206,23 +207,21 @@ class Week(ValidationMonthAndWeekIntervalMixin, WeekMixin, models.Model):
         return super().clean()
 
     def clean_fields(self, exclude):
+        """Отключение метода для избежания дублирования ошибок."""
         return None
 
     def save(self, *args, **kwargs):
+        """Привязка объекта к месяцу и последующее сохранение."""
         self.month = self.get_related_obj()
         return super().save(*args, **kwargs)
 
 
 class Schedule(ScheduleMixin, models.Model):
     """
-    Модель расписания для пользователей. Содержит семь полей - текст
-    расписания, заметки, дату, частоту и количество повторений,
-    автора (foreignkey), недели (manytomany):
+    Модель расписания для пользователей.
     1. Поле автор - только для администратора, поле недели - заполняется
     автоматически из значений даты, частоты и количества повторений;
-    2. Установлено ограничение на выбор дат: нельзя создать объект расписания
-    если нет соответствующего объекта модели Week, нельзя выбрать воскресенье;
-    3. Установлен Unique Constraint: автор и дата.
+    2. Установлен Unique Constraint: автор и дата.
     """
 
     text = models.TextField(
@@ -282,10 +281,12 @@ class Schedule(ScheduleMixin, models.Model):
         )
 
     def __str__(self):
+        """Название объекта составляется из даты и автора."""
         str_date = self.date.strftime('%d %B %Y')
         return f'{str_date} {self.author.username}'
 
     def clean(self):
+        """Запуск всех валидирующих методов."""
         super().clean_fields()
         self.validate_sunday()
         self.validate_empty_repetition()
@@ -294,5 +295,6 @@ class Schedule(ScheduleMixin, models.Model):
         return super().clean()
 
     def save(self, *args, **kwargs):
+        """Сохранение объекта и последующая привязка к указанным неделям."""
         super().save(*args, **kwargs)
         self.week.set(self.get_related_week_objects())

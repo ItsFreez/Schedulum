@@ -1,5 +1,6 @@
 import datetime
 
+from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, render
 from django.views.generic import (CreateView, DeleteView, ListView,
@@ -9,8 +10,8 @@ from django.urls import reverse_lazy
 from schedules.forms import ScheduleCreationForm, ScheduleEditForm
 from schedules.models import Month, Year, Week, Schedule, User
 
-CURRENT_DAY = datetime.date.today()
-NEXT_DAY = CURRENT_DAY + datetime.timedelta(days=1)
+CURRENT_DAY = settings.CURRENT_DAY
+NEXT_DAY = settings.NEXT_DAY
 
 
 def csrf_failure(request, reason=''):
@@ -29,10 +30,7 @@ def server_error(request):
 
 
 class ScheduleChangeMixin(LoginRequiredMixin):
-    """
-    Миксин для обновления и удаления объектов Schedule -
-    вовзращает объект, исходя из полей author и date или ошибку 404.
-    """
+    """Миксин для обновления и удаления объектов Schedule."""
 
     model = Schedule
     slug_url_kwarg = 'date'
@@ -40,10 +38,12 @@ class ScheduleChangeMixin(LoginRequiredMixin):
     success_url = reverse_lazy('schedules:calendar')
 
     def dispatch(self, request, *args, **kwargs):
+        """Получение объекта пользователя или ошибка."""
         self.user = get_object_or_404(User, username=request.user)
         return super().dispatch(request, *args, **kwargs)
 
     def get_object(self, queryset=None):
+        """Получение объекта расписания по пользователю и дате."""
         if queryset is None:
             queryset = self.get_queryset()
         date_str = self.kwargs.get(self.slug_url_kwarg)
@@ -59,20 +59,19 @@ class IndexView(TemplateView):
 
 
 class CalendarView(LoginRequiredMixin, ListView):
-    """
-    View для страницы календаря - передает в template все объекты
-    Year, Month и Week.
-    """
+    """View для страницы календаря."""
 
     model = Month
     template_name = 'schedules/calendar.html'
 
     def get_queryset(self):
+        """Получение объектов Year, Month, Week."""
         self.year_objects = Year.objects.all()[:2]
         self.week_objects = Week.objects.all()
         return super().get_queryset()
 
     def get_context_data(self, **kwargs):
+        """Передача объектов в template через словарь context."""
         context = super().get_context_data(**kwargs)
         context['years'] = self.year_objects
         context['weeks'] = self.week_objects
@@ -80,14 +79,12 @@ class CalendarView(LoginRequiredMixin, ListView):
 
 
 class DayListView(LoginRequiredMixin, ListView):
-    """
-    View для страницы расписания на неделю - передает в template все объекты
-    Schedule, исходя из года, месяца, недели и автора.
-    """
+    """View для страницы расписания на неделю."""
 
     template_name = 'schedules/daylist.html'
 
     def dispatch(self, request, *args, **kwargs):
+        """Получение объектов пользователя, Year, Month, Week или ошибка."""
         self.user = get_object_or_404(User, username=request.user)
         year = get_object_or_404(Year, year=kwargs['year'])
         month = get_object_or_404(Month, title=kwargs['month_titl'], year=year)
@@ -97,6 +94,10 @@ class DayListView(LoginRequiredMixin, ListView):
         return super().dispatch(request, *args, **kwargs)
 
     def get_queryset(self):
+        """
+        Получение и передача объектов Schedule в template исходя из их
+        номера дня недели, номера недели и пользователя.
+        """
         schedules = []
         for number in range(7):
             date = self.week.start + datetime.timedelta(days=number)
@@ -119,6 +120,7 @@ class ScheduleCreateView(LoginRequiredMixin, CreateView):
     success_url = reverse_lazy('schedules:calendar')
 
     def get_form_kwargs(self):
+        """Передача объекта текущего пользователя в форму."""
         kwargs = super().get_form_kwargs()
         kwargs.update({'author': self.request.user})
         return kwargs
@@ -137,14 +139,16 @@ class ScheduleDeleteView(ScheduleChangeMixin, DeleteView):
 
 
 class ProfileView(LoginRequiredMixin, ListView):
-    """
-    View для профиля пользователя - передает в template объект
-    пользователя и объекты расписания на сегодня и завтра.
-    """
+    """View для профиля пользователя."""
 
     template_name = 'schedules/profile.html'
 
     def get_queryset(self):
+        """
+        1. Получение объекта пользователя или ошибка;
+        2. Получение объектов Schedule на сегодняшнюю и завтрашнюю дату;
+        3. Передача объектов в template.
+        """
         self.user = get_object_or_404(User, username=self.request.user)
         schedules = []
         for day, title in ((CURRENT_DAY, 'Сегодня'), (NEXT_DAY, 'Завтра')):
@@ -162,7 +166,7 @@ class ProfileView(LoginRequiredMixin, ListView):
         return schedules
 
     def get_context_data(self, **kwargs):
+        """Передача объекта пользователя в template через словарь context."""
         context = super().get_context_data(**kwargs)
         context['profile'] = self.user
-        context['dates'] = [CURRENT_DAY, NEXT_DAY]
         return context
